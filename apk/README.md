@@ -14,22 +14,20 @@ native libs are byte-identical to the original APK.
 
 ## What was patched
 
-All changes are in `ginlemon/flower/widgets/...` `SLGlassClockView` (plus a tiny new
-helper class `SLFix`).
+Constants-only patch in `LSLGlassClockView;` — no new classes, no new methods, no changed
+method signatures, no new branches. Instruction count of both touched methods is identical to
+the original (253 -> 253 and 437 -> 437); only literal values changed:
 
-1. **Ghost / doubled digits** — the view drew the digit path five times (fill, sheen,
-   rim light, rim dark, offset shadow) with each layer nudged by 1.8–2.6 dp. That is the
-   duplicated, cut-through-glass look. The four extra layers are now set to alpha 0 on the
-   first frame; only the solid fill is drawn.
-2. **Colon dots** — were placed at 30 % / 69 % of the digit height. Now 46 % / 92 %, so the
-   two dots sit centred on the digits like the reference.
-3. **Date overlap** — the clock started right at the date baseline. It now always keeps
-   ≥ 4 dp between the date and the top of the digits, and the date's shadow layer is off.
-4. **Edge clipping** — side margin 3.2 % → 4 %, digit scale 4.74×/4.55× tall → 4.35×, so no
-   digit is cut off at the screen edges.
+| Purpose | Method | Change |
+|---|---|---|
+| Ghost / doubled digits | `<init>` | `shadowPaint` colour `0x1a000000` -> `0x00000000` |
+| Doubled date line | `<init>` | date `setShadowLayer` radius/colour -> `0` |
+| Colon dots too high | `rebuildGeometryAndShaders` | dot offsets `0.30f/0.69f` -> `0.46f/0.92f` |
+| Edge clipping | `rebuildGeometryAndShaders` | side margin `0.032f` -> `0.04f`, digit height `4.74f`/`4.55f` -> `4.35f` |
 
-`frida`/anti-tamper note: the base app contains no runtime integrity checks that were
-touched by this patch.
+Verified with a method-by-method bytecode diff against the source APK: **exactly 2 methods
+changed, both same instruction count**. Everything else in `classes4.dex` and all other
+1455 ZIP entries are byte-identical to the source.
 
 ## Build
 
