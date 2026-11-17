@@ -12,22 +12,18 @@ native libs are byte-identical to the original APK.
 | Size | 24.0 MB |
 | SHA-256 | (see `sha256sum` output in repo) |
 
-## What was patched
+## What was patched (v6)
 
-Constants-only patch in `LSLGlassClockView;` — no new classes, no new methods, no changed
-method signatures, no new branches. Instruction count of both touched methods is identical to
-the original (253 -> 253 and 437 -> 437); only literal values changed:
+Constants-only. No new classes or attributes, method signatures unchanged.
 
 | Purpose | Method | Change |
 |---|---|---|
-| Ghost / doubled digits | `<init>` | `shadowPaint` colour `0x1a000000` -> `0x00000000` |
-| Doubled date line | `<init>` | date `setShadowLayer` radius/colour -> `0` |
-| Colon dots too high | `rebuildGeometryAndShaders` | dot offsets `0.30f/0.69f` -> `0.46f/0.92f` |
-| Edge clipping | `rebuildGeometryAndShaders` | side margin `0.032f` -> `0.04f`, digit height `4.74f`/`4.55f` -> `4.35f` |
-
-Verified with a method-by-method bytecode diff against the source APK: **exactly 2 methods
-changed, both same instruction count**. Everything else in `classes4.dex` and all other
-1455 ZIP entries are byte-identical to the source.
+| Ghost / doubled digits | `rebuildGeometryAndShaders` | `sheenPaint`, `rimLightPaint`, `rimDarkPaint` -> `setAlpha(0)` (these were re-set on every rebuild, which is why the constructor-only fix had no effect) |
+| Doubled date line | `<init>` | date `setShadowLayer` -> radius 0 |
+| Inner cut / concentric ring look | `<init>` | `shadowPaint` colour `0x1a000000` -> `0` |
+| Colon dots too big | `rebuildGeometryAndShaders` | dot radius `0.44f` -> `0.30f` of digit height |
+| `1` clipped at the edge | `rebuildGeometryAndShaders` | side margin `0.04f` -> `0.06f`, digit height `4.74f`/`4.55f` -> `4.35f` |
+| Colon dots off-centre | `rebuildGeometryAndShaders` | dot offsets `0.30f/0.69f` -> `0.46f/0.92f` |
 
 ## Build
 
