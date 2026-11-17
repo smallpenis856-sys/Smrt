@@ -12,18 +12,26 @@ native libs are byte-identical to the original APK.
 | Size | 24.0 MB |
 | SHA-256 | (see `sha256sum` output in repo) |
 
-## What was patched (v6)
+## What was patched (v7)
 
-Constants-only. No new classes or attributes, method signatures unchanged.
+Constants + three `setAlpha(0)` calls. No new classes, method signatures unchanged.
 
 | Purpose | Method | Change |
 |---|---|---|
-| Ghost / doubled digits | `rebuildGeometryAndShaders` | `sheenPaint`, `rimLightPaint`, `rimDarkPaint` -> `setAlpha(0)` (these were re-set on every rebuild, which is why the constructor-only fix had no effect) |
-| Doubled date line | `<init>` | date `setShadowLayer` -> radius 0 |
-| Inner cut / concentric ring look | `<init>` | `shadowPaint` colour `0x1a000000` -> `0` |
-| Colon dots too big | `rebuildGeometryAndShaders` | dot radius `0.44f` -> `0.30f` of digit height |
-| `1` clipped at the edge | `rebuildGeometryAndShaders` | side margin `0.04f` -> `0.06f`, digit height `4.74f`/`4.55f` -> `4.35f` |
-| Colon dots off-centre | `rebuildGeometryAndShaders` | dot offsets `0.30f/0.69f` -> `0.46f/0.92f` |
+| Ghost / doubled digits | `rebuildGeometryAndShaders` | `sheenPaint`, `rimLightPaint`, `rimDarkPaint` -> `setAlpha(0)`. These paints are re-configured on every rebuild, so a constructor-only fix had no effect. |
+| Inner cut / concentric glyph look | `<init>` | `shadowPaint` colour `0x1a000000` -> `0` |
+| Doubled date line | `<init>` | date `setShadowLayer` radius -> 0 |
+| Colon dots too large | `rebuildGeometryAndShaders` | radius `0.44f` -> `0.30f` of digit height |
+| Colon dots off-centre | `rebuildGeometryAndShaders` | offsets `0.30f/0.69f` -> `0.46f/0.92f` |
+| `1` clipped at screen edge | `rebuildGeometryAndShaders` | side margin `0.032f` -> `0.06f`, digit height `4.74f`/`4.55f` -> `4.35f` |
+
+### Register note (caused a launch crash in v6)
+
+`setAlpha(int)` needs an **int** register and `invoke-virtual` only accepts `v0`-`v15`.
+v6 passed `v11`, which in `rebuildGeometryAndShaders` holds a *float* at that point, so ART
+rejected the class and the app died at cold start. v7 uses `v14` / `v9` (both dead after the
+call) with an explicit `const/4 ... 0x0`. Verified: no later use of those registers, and
+assembly fails loudly if a register is ever out of range.
 
 ## Build
 
