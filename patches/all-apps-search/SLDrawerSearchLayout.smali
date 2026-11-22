@@ -43,6 +43,18 @@
 
     invoke-virtual {v0, v1}, Landroid/view/View;->setOnClickListener(Landroid/view/View$OnClickListener;)V
 
+    const/4 v0, 0x1
+    invoke-virtual {p0, v0}, Landroid/view/ViewGroup;->getChildAt(I)Landroid/view/View;
+    move-result-object v0
+    invoke-virtual {v0, v1}, Landroid/view/View;->setOnClickListener(Landroid/view/View$OnClickListener;)V
+    check-cast v0, Landroid/view/ViewGroup;
+    const/4 v1, 0x2
+    invoke-virtual {v0, v1}, Landroid/view/ViewGroup;->getChildAt(I)Landroid/view/View;
+    move-result-object v0
+    new-instance v1, Lginlemon/flower/glass/SLDrawerVoiceClick;
+    invoke-direct {v1}, Lginlemon/flower/glass/SLDrawerVoiceClick;-><init>()V
+    invoke-virtual {v0, v1}, Landroid/view/View;->setOnClickListener(Landroid/view/View$OnClickListener;)V
+
     return-void
 .end method
 

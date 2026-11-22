@@ -1,0 +1,12 @@
+    iget-object v10, p0, Lqv9;->G:Ljava/lang/String;
+
+    iget-object v0, p0, Lqv9;->e:Lginlemon/flower/widgets/searchbar/SearchBarWidget;
+    invoke-virtual {v0}, Landroid/view/View;->getTag()Ljava/lang/Object;
+    move-result-object v0
+    const-string v1, "all_apps_search"
+    invoke-virtual {v1, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+    move-result v0
+    if-eqz v0, :drawer_label_done
+    const-string v9, ""
+    const-string v10, ""
+    :drawer_label_done

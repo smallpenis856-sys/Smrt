@@ -6,7 +6,7 @@ import xml.etree.ElementTree as ET
 before, after = map(Path, sys.argv[1:])
 layout = ET.parse(after / "res/layout/drawer_bottom_search.xml").getroot()
 assert layout.tag == "ginlemon.flower.glass.SLDrawerSearchLayout"
-assert len(layout) == 1
+assert len(layout) == 2
 assert layout[0].tag == "ginlemon.flower.widgets.searchbar.SearchBarWidget"
 for name in ("SearchBarWidget", "SearchBarWidgetViewModel"):
     relative = f"smali/ginlemon/flower/widgets/searchbar/{name}.smali"
@@ -14,7 +14,7 @@ for name in ("SearchBarWidget", "SearchBarWidgetViewModel"):
 wrapper = (after / "smali/ginlemon/flower/glass/SLDrawerSearchLayout.smali").read_text()
 assert wrapper.index("->v(I)V") < wrapper.index("->t()V")
 assert "SLSearchClick;" in wrapper
-assert "versionCode: 660277" in (after / "apktool.yml").read_text()
+assert "versionCode: 660278" in (after / "apktool.yml").read_text()
 for folder in ("assets", "lib"):
     for original in (before / folder).rglob("*"):
         if original.is_file():
@@ -40,3 +40,30 @@ for field in ("a:F", "b:Z"):
     assert f"Lui9;->{field}" in wrapper
 assert "if-eqz v4," in wrapper  # Do not rebuild every frame when unchanged.
 print("PASS: live home state/appearance sharing, drawer-tag exclusion, attach/detach listener pairing")
+
+android = "{http://schemas.android.com/apk/res/android}"
+overlay = layout[1]
+assert overlay.tag == "LinearLayout" and len(overlay) == 3
+assert overlay[0].get(android + "src") == "@drawable/ic_drawer_search_outline"
+assert overlay[1].get(android + "text") == "@string/search"
+assert overlay[1].get(android + "layout_weight") in ("1", "1.0")
+assert overlay[2].tag == "ImageButton"
+assert overlay[2].get(android + "src") == "@drawable/ic_drawer_mic_outline"
+assert overlay[2].get(android + "contentDescription") == "@string/abc_searchview_description_voice"
+assert layout[0].get(android + "importantForAccessibility") == "noHideDescendants"
+for icon in ("search", "mic"):
+    vector = ET.parse(after / f"res/drawable/ic_drawer_{icon}_outline.xml").getroot()
+    assert vector.tag == "vector" and vector[0].get(android + "strokeWidth")
+label_renderer = (after / "smali/qv9.smali").read_text()
+assert '"all_apps_search"' in label_renderer
+assert 'const-string v9, ""' in label_renderer
+assert 'const-string v10, ""' in label_renderer
+assert "->equals(Ljava/lang/Object;)Z" in label_renderer
+voice = (after / "smali/ginlemon/flower/glass/SLDrawerVoiceClick.smali").read_text()
+assert '"android.speech.action.WEB_SEARCH"' in voice
+assert "->startActivity(" in voice
+assert ".catch Landroid/content/ActivityNotFoundException;" in voice
+assert ".catch Ljava/lang/SecurityException;" in voice
+assert "->show()V" in voice
+assert "SLDrawerVoiceClick;" in wrapper
+print("PASS: drawer-only label override, search/mic order, outline vectors, accessible voice target and missing-provider handling")

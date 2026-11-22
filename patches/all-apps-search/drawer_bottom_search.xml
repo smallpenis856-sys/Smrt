@@ -14,6 +14,44 @@
     app:layout_constraintStart_toStartOf="parent">
     <ginlemon.flower.widgets.searchbar.SearchBarWidget
         android:tag="all_apps_search"
+        android:importantForAccessibility="noHideDescendants"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
+    <LinearLayout
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:paddingStart="16dp"
+        android:paddingEnd="4dp"
+        android:clickable="true"
+        android:focusable="true"
+        android:contentDescription="@string/search">
+        <ImageView
+            android:layout_width="22dp"
+            android:layout_height="22dp"
+            android:src="@drawable/ic_drawer_search_outline"
+            android:tint="?colorHighEmphasis"
+            android:importantForAccessibility="no" />
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="10dp"
+            android:text="@string/search"
+            android:textSize="18sp"
+            android:textColor="?android:textColorSecondary"
+            android:gravity="start|center_vertical"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:importantForAccessibility="no" />
+        <ImageButton
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:padding="13dp"
+            android:src="@drawable/ic_drawer_mic_outline"
+            android:tint="?colorHighEmphasis"
+            android:background="?android:selectableItemBackgroundBorderless"
+            android:contentDescription="@string/abc_searchview_description_voice" />
+    </LinearLayout>
 </ginlemon.flower.glass.SLDrawerSearchLayout>
