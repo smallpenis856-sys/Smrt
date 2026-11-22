@@ -1,6 +1,12 @@
 # All Apps: copy the actual home search settings
 
-Base: `SmartLauncher-BottomSearch.apk` (660274). Current output: `SmartLauncher-AllAppsSearch-iOSIcons.apk` (660278). Earlier outputs 660275–660277 remain for history, not for installing this change. The user confirmed the glass effect was correct after changing wallpaper.
+Base: `SmartLauncher-BottomSearch.apk` (660274). Current output: `SmartLauncher-AllAppsSearch-NoFlash.apk` (660279). Earlier outputs 660275–660278 remain for history, not for installing this change. The user confirmed the glass effect was correct after changing wallpaper.
+
+## Drawer search transition (660279)
+
+The drawer's old listener called `HomeScreen.H()`, then `G(40)` and `f58.z(40)`. That helper normalizes to home immediately and animates the search panel in, exposing home in between. A drawer-only `SLDrawerSearchClick` now normalizes the workspace and selects the existing search panel synchronously with animation disabled for both operations, then focuses its native search input. No frame is intentionally scheduled between normalization and showing search. This retains the native cross-axis normalization without changing the global panel manager or home search behavior.
+
+As in the original panel-navigation helper, taps during an active workspace animation are ignored. Missing search panels still use `HomeScreen.o(40)` to preserve the launcher's original disabled/missing-panel handling. Search still opens the launcher's dedicated search panel; this is not a new inline drawer filter. The glass, icons, mic action and search engine behavior are unchanged. Device testing is needed for flash removal, keyboard timing and Back behavior.
 
 ## Reference-style icons (660278)
 
@@ -16,7 +22,7 @@ A single hook in the existing `SearchBarWidget.u(float, renderer, appearance)` r
 
 The drawer copies those exact references/settings before drawing and resets its Compose content only when necessary. Existing native state-flow collection handles subsequent per-widget setting changes. Home rendering itself is otherwise unchanged. This no longer requires finding an attached home view. It does not take a screenshot or write preferences.
 
-The native home widget is used inside the existing drawer bottom position (56dp height, 44dp side margins, 28dp bottom margin). `SLSearchClick` preserves the drawer's existing search action. The reserved fallback ID -275 remains only until the first home render publishes its settings.
+The native home widget is used inside the existing drawer bottom position (56dp height, 44dp side margins, 28dp bottom margin). `SLDrawerSearchClick` opens the native search panel without the intermediate animated home transition. The reserved fallback ID -275 remains only until the first home render publishes its settings.
 
 Limits: the last rendered home search bar supplies settings if several home bars exist. If there is no initialized home search bar, the default native bar is the fallback. The wallpaper renderer is reused; a separate live blur implementation for scrolling app icons is not added.
 
@@ -26,13 +32,13 @@ With Java, Apktool 2.9.3 and apksigner available:
 
 1. Decode the base APK with `apktool d SmartLauncher-BottomSearch.apk -o decoded`.
 2. Copy `drawer_bottom_search.xml` to `decoded/res/layout/` and `SLDrawerSearchLayout.smali` to `decoded/smali/ginlemon/flower/glass/`.
-3. Copy both `ic_drawer_*_outline.xml` files to `decoded/res/drawable/` and `SLDrawerVoiceClick.smali` to `decoded/smali/ginlemon/flower/glass/`. In `decoded/smali/qv9.smali`, insert the block in `drawer-label-hook.txt` after its matching `iget-object v10` line (the first line of that text file is context, not a duplicate instruction).
+3. Copy both `ic_drawer_*_outline.xml` files to `decoded/res/drawable/` and both `SLDrawerVoiceClick.smali` and `SLDrawerSearchClick.smali` to `decoded/smali/ginlemon/flower/glass/`. In `decoded/smali/qv9.smali`, insert the block in `drawer-label-hook.txt` after its matching `iget-object v10` line (the first line of that text file is context, not a duplicate instruction).
 4. In `decoded/smali/ginlemon/flower/widgets/searchbar/SearchBarWidget.smali`, insert the `invoke-static` from `home-render-hook.txt` immediately after `.locals 10` in method `u(FLp7b;Luec;)V`, exactly once. The text file includes the method header for context.
-5. Change `versionCode: 660274` to `versionCode: 660278` in `decoded/apktool.yml`.
+5. Change `versionCode: 660274` to `versionCode: 660279` in `decoded/apktool.yml`.
 6. Build with `apktool b decoded -o unsigned.apk`.
 7. Run `python patches/all-apps-search/align_apk.py unsigned.apk aligned.apk`.
-8. Sign `aligned.apk` using your own keystore, producing `SmartLauncher-AllAppsSearch-iOSIcons.apk`.
-9. Verify with `apksigner verify --verbose SmartLauncher-AllAppsSearch-iOSIcons.apk` and `python patches/all-apps-search/align_apk.py SmartLauncher-AllAppsSearch-iOSIcons.apk`.
+8. Sign `aligned.apk` using your own keystore, producing `SmartLauncher-AllAppsSearch-NoFlash.apk`.
+9. Verify with `apksigner verify --verbose SmartLauncher-AllAppsSearch-NoFlash.apk` and `python patches/all-apps-search/align_apk.py SmartLauncher-AllAppsSearch-NoFlash.apk`.
 10. Decode the signed result to `verified`, then run `python patches/all-apps-search/check_build.py decoded verified`.
 
 ## Checks and installation
@@ -41,4 +47,4 @@ Build, signed-APK decode, v2/v3 signature verification, 4-byte stored-entry alig
 
 No Android device/emulator is available here. These are structural/build checks, not proof the reported glass defect is fixed. On a device, first visit home, change the home search appearance/glass settings, then open All Apps. Confirm both bars respond to the same settings; also check reopening, rotation, wallpaper changes, search-row taps and mic launching/missing-handler feedback. Reference-style layout and touch behavior have not been visually tested on a device.
 
-This APK uses the same local certificate as 660275/660276/660277, so an update over those builds should be accepted. It is not signed with the original base APK's key. Back up layout/settings before considering any uninstall; uninstalling can remove data. The temporary keystore is not committed.
+This APK uses the same local certificate as 660275–660278, so an update over those builds should be accepted. It is not signed with the original base APK's key. Back up layout/settings before considering any uninstall; uninstalling can remove data. The temporary keystore is not committed.

@@ -36,10 +36,10 @@
 
     invoke-virtual {v0}, Lginlemon/flower/widgetUtils/compose/ViewWidgetComposableLayout;->t()V
 
-    # Keep the drawer's existing search action, not widget editing/navigation.
-    new-instance v1, Lginlemon/flower/glass/SLSearchClick;
+    # Drawer-only atomic navigation avoids the intermediate home animation.
+    new-instance v1, Lginlemon/flower/glass/SLDrawerSearchClick;
 
-    invoke-direct {v1}, Lginlemon/flower/glass/SLSearchClick;-><init>()V
+    invoke-direct {v1}, Lginlemon/flower/glass/SLDrawerSearchClick;-><init>()V
 
     invoke-virtual {v0, v1}, Landroid/view/View;->setOnClickListener(Landroid/view/View$OnClickListener;)V
 

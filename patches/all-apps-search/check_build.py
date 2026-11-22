@@ -13,8 +13,8 @@ for name in ("SearchBarWidget", "SearchBarWidgetViewModel"):
     assert (before / relative).read_bytes() == (after / relative).read_bytes(), name
 wrapper = (after / "smali/ginlemon/flower/glass/SLDrawerSearchLayout.smali").read_text()
 assert wrapper.index("->v(I)V") < wrapper.index("->t()V")
-assert "SLSearchClick;" in wrapper
-assert "versionCode: 660278" in (after / "apktool.yml").read_text()
+assert "SLDrawerSearchClick;" in wrapper
+assert "versionCode: 660279" in (after / "apktool.yml").read_text()
 for folder in ("assets", "lib"):
     for original in (before / folder).rglob("*"):
         if original.is_file():
@@ -67,3 +67,22 @@ assert ".catch Ljava/lang/SecurityException;" in voice
 assert "->show()V" in voice
 assert "SLDrawerVoiceClick;" in wrapper
 print("PASS: drawer-only label override, search/mic order, outline vectors, accessible voice target and missing-provider handling")
+
+click = (after / "smali/ginlemon/flower/glass/SLDrawerSearchClick.smali").read_text()
+assert "HomeScreen;->H()V" not in click
+assert "HomeScreen;->G(I)" not in click
+assert "Lf58;->z(" not in click
+assert "->post(" not in click and "->postDelayed(" not in click
+assert "->isRunning()Z" in click
+assert "->o(I)V" in click  # Preserve missing-search handling.
+assert click.index("->r(Lw48;ZFLcs4;)Z") < click.index("->q(Lj48;ZFLcs4;)V") < click.index("SearchPanel;->H()V")
+assert "const/4 v4, 0x0" in click
+assert "{v1, v3, v4, v5, v0}" in click
+assert "{v1, v2, v4, v5, v0}" in click  # Same false animation flag for both transitions.
+for relative in (
+    "smali/f58.smali",
+    "smali/ginlemon/flower/HomeScreen.smali",
+    "smali/ginlemon/flower/searchPanel/SearchPanel.smali",
+):
+    assert (before / relative).read_bytes() == (after / relative).read_bytes(), relative
+print("PASS: synchronous drawer-only search navigation, focus after navigation, animation guard, missing-search path, unchanged global navigation")
