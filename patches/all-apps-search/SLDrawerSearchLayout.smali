@@ -53,7 +53,9 @@
 
     invoke-virtual {v0, v1}, Landroid/view/View;->setOnClickListener(Landroid/view/View$OnClickListener;)V
 
-    const/4 v0, 0x1
+    invoke-virtual {p0}, Landroid/view/ViewGroup;->getChildCount()I
+    move-result v0
+    add-int/lit8 v0, v0, -0x1
     invoke-virtual {p0, v0}, Landroid/view/ViewGroup;->getChildAt(I)Landroid/view/View;
     move-result-object v0
     invoke-virtual {v0, v1}, Landroid/view/View;->setOnClickListener(Landroid/view/View$OnClickListener;)V

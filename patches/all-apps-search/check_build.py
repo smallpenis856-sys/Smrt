@@ -6,7 +6,7 @@ import xml.etree.ElementTree as ET
 before, after = map(Path, sys.argv[1:])
 layout = ET.parse(after / "res/layout/drawer_bottom_search.xml").getroot()
 assert layout.tag == "ginlemon.flower.glass.SLDrawerSearchLayout"
-assert len(layout) == 2
+assert len(layout) == 3
 assert layout[0].tag == "ginlemon.flower.widgets.searchbar.SearchBarWidget"
 for name in ("SearchBarWidget", "SearchBarWidgetViewModel"):
     relative = f"smali/ginlemon/flower/widgets/searchbar/{name}.smali"
@@ -14,7 +14,7 @@ for name in ("SearchBarWidget", "SearchBarWidgetViewModel"):
 wrapper = (after / "smali/ginlemon/flower/glass/SLDrawerSearchLayout.smali").read_text()
 assert wrapper.index("->v(I)V") < wrapper.index("->t()V")
 assert "SLDrawerSearchClick;" in wrapper
-assert "versionCode: 660282" in (after / "apktool.yml").read_text()
+assert "versionCode: 660283" in (after / "apktool.yml").read_text()
 for folder in ("assets", "lib"):
     for original in (before / folder).rglob("*"):
         if original.is_file():
@@ -42,7 +42,7 @@ assert "if-eqz v4," in wrapper  # Do not rebuild every frame when unchanged.
 print("PASS: live home state/appearance sharing, drawer-tag exclusion, attach/detach listener pairing")
 
 android = "{http://schemas.android.com/apk/res/android}"
-overlay = layout[1]
+overlay = layout[-1]
 assert overlay.tag == "LinearLayout" and len(overlay) == 3
 assert overlay[0].get(android + "src") == "@drawable/ic_drawer_search_outline"
 assert overlay[1].get(android + "text") == "@string/search"
@@ -142,3 +142,19 @@ apply_tint = wrapper.split(".method private static tintIcon", 1)[1]
 assert "->getDefaultColor()I" in apply_tint and "if-eq p0, p2," in apply_tint
 assert "->setImageTintList(" in apply_tint
 print("PASS: both search/mic pairs use native wallpaper foreground, neutral XML fallback, per-frame theme refresh and unchanged-color invalidation guard")
+
+assert layout[1].tag == "ginlemon.flower.glass.SLLiveBackdrop"
+assert layout[1].get(android + "tag") == "live_drawer_glass"
+drawer = ET.parse(after / "res/layout/drawer.xml").getroot()
+card = next(node for node in drawer if node.get(android + "id") == "@id/drawerCard")
+assert card.get(android + "tag") == "live_drawer_source"
+assert not any(node.tag.endswith("SLLiveBackdrop") or node.tag.endswith("SLDrawerSearchLayout") for node in card.iter())
+live = (after / "smali/ginlemon/flower/glass/SLLiveBackdrop.smali").read_text()
+assert '"live_drawer_source"' in live
+for call in ("->draw(Landroid/graphics/Canvas;)V", "->getLocationInWindow([I)V", "->getPixels(", "->setPixels(", "->clipPath(", "->addOnPreDrawListener(", "->removeOnPreDrawListener(", "->recycle()V"):
+    assert call in live, call
+assert "Ljava/util/Arrays;->equals([I[I)Z" in live
+assert "->blur([I[IIII)V" in live
+assert "Landroid/graphics/RenderEffect;" not in live  # CPU blur also supports minSdk 24.
+assert "add-int/lit8 v0, v0, -0x1" in wrapper  # Foreground remains last, above live backdrop.
+print("PASS: live sibling-content source excludes glass, correct layer order, coordinate alignment, actual pixel blur, no unchanged-frame invalidation and listener/bitmap cleanup")

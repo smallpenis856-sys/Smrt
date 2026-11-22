@@ -1,6 +1,26 @@
 # All Apps: copy the actual home search settings
 
-Base: `SmartLauncher-BottomSearch.apk` (660274). Current output: `SmartLauncher-AllAppsSearch-NoFlash.apk` (660282; replaces the previous NoFlash download). Earlier outputs 660275–660281 remain for history, not for installing this change. The user confirmed the glass effect was correct after changing wallpaper.
+Base: `SmartLauncher-BottomSearch.apk` (660274). Current output: `SmartLauncher-AllAppsSearch-NoFlash.apk` (660283; replaces the previous NoFlash download). Earlier outputs 660275–660282 remain for history, not for installing this change. The user confirmed the glass effect was correct after changing wallpaper.
+
+## Live drawer backdrop (660283)
+
+`SLLiveBackdrop` is inserted between the native glass capsule and the search/mic foreground. It renders only the tagged sibling `drawerCard`, not the drawer root or glass itself, into a reusable quarter-resolution crop with a padded blur margin. Window coordinates align scrolling icons to the search bar. A two-pass separable box blur (run twice) processes premultiplied-alpha pixels, then the softened icon image is composited inside the pill with a subtle rim. This adds real blur of app icons beneath the bar; it does not merely render wallpaper or blur the search text itself. Existing native wallpaper reflection/settings remain behind this layer. No screenshots are saved or transmitted and no permissions are added.
+
+Pre-draw captures follow actual view-tree updates during scrolling; unchanged raw pixels do not invalidate the backdrop again. Capture/output bitmaps, pixel buffers and coordinate arrays are reused, resized on layout changes and released on detach. No unconditional timer or animation loop runs. CPU blur avoids a dependency on Android 12 RenderEffect and supports the existing API 24 minimum. It adds rendering work during scrolling; actual frame rate/battery behavior has not been measured on a device.
+
+Limits: this is a live frosted-icon overlay plus the existing native wallpaper glass, not a replacement native per-icon liquid-refraction shader. Live blur strength is currently fixed (roughly a 6dp box radius), independent of the native home reflection slider. It is only added to the bottom All Apps bar; the active top search field retains its previous native background. Some OEM/hardware-only icon drawables cannot be drawn on a software Canvas. Illegal-state/argument capture failures log once, stop sampling for that attachment and leave the native glass visible rather than crash. Hardware-only effects inside drawer children may not be reproduced in software capture.
+
+Java source and its generated smali are both included. APK rebuilding only needs copying `SLLiveBackdrop.smali`; do not edit that generated file by hand. To rebuild that class from Java: compile with Java 8 bytecode against an Android SDK jar, dex with dx/D8 (min API 24), then disassemble into the existing smali directory. No new runtime library is required.
+
+Blur self-check used here (JDK and Android SDK jar paths adjusted to your installation):
+
+```sh
+javac -source 8 -target 8 -cp "$ANDROID_JAR" -d .cache/live-classes patches/all-apps-search/SLLiveBackdrop.java
+javac -cp ".cache/live-classes:$ANDROID_JAR" -d .cache/live-tests patches/all-apps-search/BackdropBlurTest.java
+java -cp ".cache/live-classes:.cache/live-tests:$ANDROID_JAR" ginlemon.flower.glass.BackdropBlurTest
+```
+
+Tests cover solid/transparent pixels, a softened icon impulse, premultiplied edge colors, tiny buffers and input rejection. Signed-APK round-trip checks cover sibling-only capture/layering, coordinate alignment calls, actual blur code, unchanged-frame comparison and lifecycle cleanup. A physical-device test is still needed: scroll a colorful icon behind the bottom pill and confirm it is visibly softened inside but sharp outside, then test rotation, repeated open/close, taps and Back.
 
 ## Wallpaper/theme foreground for icons (660282)
 
@@ -44,17 +64,17 @@ The drawer copies those exact references/settings before drawing and resets its 
 
 The native home widget is used inside the existing drawer bottom position (56dp height, 44dp side margins, 28dp bottom margin). `SLDrawerSearchClick` opens the native search panel without the intermediate animated home transition. The reserved fallback ID -275 remains only until the first home render publishes its settings.
 
-Limits: the last rendered home search bar supplies settings if several home bars exist. If there is no initialized home search bar, the default native bar is the fallback. The wallpaper renderer is reused; a separate live blur implementation for scrolling app icons is not added.
+Limits: the last rendered home search bar supplies settings if several home bars exist. If there is no initialized home search bar, the default native bar is the fallback. The wallpaper renderer is reused; build 660283 adds a separate live app-icon blur overlay to the bottom drawer bar.
 
 ## Rebuild
 
 With Java, Apktool 2.9.3 and apksigner available:
 
 1. Decode the base APK with `apktool d SmartLauncher-BottomSearch.apk -o decoded`.
-2. Copy `drawer_bottom_search.xml` to `decoded/res/layout/` and `SLDrawerSearchLayout.smali` to `decoded/smali/ginlemon/flower/glass/`.
+2. Copy `drawer.xml` and `drawer_bottom_search.xml` to `decoded/res/layout/` and both `SLDrawerSearchLayout.smali` and `SLLiveBackdrop.smali` to `decoded/smali/ginlemon/flower/glass/`.
 3. Copy both `ic_drawer_*_outline.xml` files to `decoded/res/drawable/` and `SLDrawerVoiceClick.smali`, `SLDrawerSearchClick.smali` and `SLDrawerSearchReturn.smali` to `decoded/smali/ginlemon/flower/glass/`. In `decoded/smali/qv9.smali`, insert the block in `drawer-label-hook.txt` after its matching `iget-object v10` line (the first line of that text file is context, not a duplicate instruction).
 4. In `decoded/smali/ginlemon/flower/widgets/searchbar/SearchBarWidget.smali`, insert the `invoke-static` from `home-render-hook.txt` immediately after `.locals 10` in method `u(FLp7b;Luec;)V`, exactly once. The text file includes the method header for context.
-5. Copy `search_panel.xml` to `decoded/res/layout/` and apply `active-search-hooks.txt` (mic binding, transparent async fill, localized hint). Apply the three insertions in `search-return-hooks.txt` to `decoded/smali/ginlemon/flower/searchPanel/SearchPanel.smali` (instance field, close-search Back branch and panel-exit cleanup). Change `versionCode: 660274` to `versionCode: 660282` in `decoded/apktool.yml`.
+5. Copy `search_panel.xml` to `decoded/res/layout/` and apply `active-search-hooks.txt` (mic binding, transparent async fill, localized hint). Apply the three insertions in `search-return-hooks.txt` to `decoded/smali/ginlemon/flower/searchPanel/SearchPanel.smali` (instance field, close-search Back branch and panel-exit cleanup). Change `versionCode: 660274` to `versionCode: 660283` in `decoded/apktool.yml`.
 6. Build with `apktool b decoded -o unsigned.apk`.
 7. Run `python patches/all-apps-search/align_apk.py unsigned.apk aligned.apk`.
 8. Sign `aligned.apk` using your own keystore, producing `SmartLauncher-AllAppsSearch-NoFlash.apk`.
@@ -67,4 +87,4 @@ Build, signed-APK decode, v2/v3 signature verification, 4-byte stored-entry alig
 
 No Android device/emulator is available here. These are structural/build checks, not proof the reported glass defect is fixed. On a device, first visit home, change the home search appearance/glass settings, then open All Apps. Confirm both bars respond to the same settings; also check reopening, rotation, wallpaper changes, search-row taps and mic launching/missing-handler feedback. Reference-style layout and touch behavior have not been visually tested on a device.
 
-This APK uses the same local certificate as 660275–660281, so an update over those builds should be accepted. It is not signed with the original base APK's key. Back up layout/settings before considering any uninstall; uninstalling can remove data. The temporary keystore is not committed.
+This APK uses the same local certificate as 660275–660282, so an update over those builds should be accepted. It is not signed with the original base APK's key. Back up layout/settings before considering any uninstall; uninstalling can remove data. The temporary keystore is not committed.
