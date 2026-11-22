@@ -14,7 +14,7 @@ for name in ("SearchBarWidget", "SearchBarWidgetViewModel"):
 wrapper = (after / "smali/ginlemon/flower/glass/SLDrawerSearchLayout.smali").read_text()
 assert wrapper.index("->v(I)V") < wrapper.index("->t()V")
 assert "SLDrawerSearchClick;" in wrapper
-assert "versionCode: 660281" in (after / "apktool.yml").read_text()
+assert "versionCode: 660282" in (after / "apktool.yml").read_text()
 for folder in ("assets", "lib"):
     for original in (before / folder).rglob("*"):
         if original.is_file():
@@ -124,3 +124,21 @@ async_theme = (after / "smali/n90.smali").read_text()
 block = async_theme.split("SearchPanel;->R:Lginlemon/library/widgets/EditTextBackEvent;", 1)[1].split("return-object", 1)[0]
 assert block.index("const/4 v9, 0x0") < block.index("->setBackground(")
 print("PASS: active editor uses same native glass/icons, editable ID and search controls preserved, ghost alignment, voice binding, async opaque-fill suppression")
+
+for file in ("drawer_bottom_search.xml", "search_panel.xml"):
+    document = ET.parse(after / "res/layout" / file).getroot()
+    icons = [node for node in document.iter() if node.get(android + "src") in (
+        "@drawable/ic_drawer_search_outline", "@drawable/ic_drawer_mic_outline")]
+    assert len(icons) == 2
+    for node in icons:
+        assert node.get(android + "tint") == "?android:textColorPrimary"
+        assert node.get(android + "tag") in ("contrast_search_icon", "contrast_mic_icon", "active_search_mic")
+assert "->updateIconTints()V" in wrapper.split(".method public onPreDraw()Z", 1)[1].split(".end method", 1)[0]
+color_update = wrapper.split(".method private updateIconTints()V", 1)[1].split(".end method", 1)[0]
+assert "Lp7b;->j()Lskb;" in color_update and "Lgkb;->a:I" in color_update
+for tag in ("contrast_search_icon", "contrast_mic_icon", "active_search_mic"):
+    assert f'"{tag}"' in color_update
+apply_tint = wrapper.split(".method private static tintIcon", 1)[1]
+assert "->getDefaultColor()I" in apply_tint and "if-eq p0, p2," in apply_tint
+assert "->setImageTintList(" in apply_tint
+print("PASS: both search/mic pairs use native wallpaper foreground, neutral XML fallback, per-frame theme refresh and unchanged-color invalidation guard")

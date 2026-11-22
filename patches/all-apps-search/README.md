@@ -1,6 +1,12 @@
 # All Apps: copy the actual home search settings
 
-Base: `SmartLauncher-BottomSearch.apk` (660274). Current output: `SmartLauncher-AllAppsSearch-NoFlash.apk` (660281; replaces the previous NoFlash download). Earlier outputs 660275–660280 remain for history, not for installing this change. The user confirmed the glass effect was correct after changing wallpaper.
+Base: `SmartLauncher-BottomSearch.apk` (660274). Current output: `SmartLauncher-AllAppsSearch-NoFlash.apk` (660282; replaces the previous NoFlash download). Earlier outputs 660275–660281 remain for history, not for installing this change. The user confirmed the glass effect was correct after changing wallpaper.
+
+## Wallpaper/theme foreground for icons (660282)
+
+Both outlined search/mic pairs previously used `?colorHighEmphasis`, which resolves to the user's launcher accent (green in the reported screenshots). XML now supplies neutral `?android:textColorPrimary` as a fallback, and the existing glass wrapper refreshes the tagged icons from its native wallpaper/theme foreground (`renderer.j().b.b.a`, also used by the launcher's menu icon), not the accent. In the active editor its foreground icons are siblings of the decorative backdrop, so the wrapper looks up tags in that container. Native glass, edit behavior, voice actions and navigation are unchanged.
+
+Tint refresh runs on pre-draw so wallpaper/theme palette changes need no APK reinstall or cached Activity theme reload. It only sets a tint when the color differs, preventing a self-invalidating draw loop. This follows the launcher's native readability palette; it is not a new per-pixel wallpaper sampler or a contrast guarantee for manually overridden native theme colors. Light/dark/custom wallpaper behavior still requires device verification.
 
 ## Active search bar matches All Apps (660281)
 
@@ -48,7 +54,7 @@ With Java, Apktool 2.9.3 and apksigner available:
 2. Copy `drawer_bottom_search.xml` to `decoded/res/layout/` and `SLDrawerSearchLayout.smali` to `decoded/smali/ginlemon/flower/glass/`.
 3. Copy both `ic_drawer_*_outline.xml` files to `decoded/res/drawable/` and `SLDrawerVoiceClick.smali`, `SLDrawerSearchClick.smali` and `SLDrawerSearchReturn.smali` to `decoded/smali/ginlemon/flower/glass/`. In `decoded/smali/qv9.smali`, insert the block in `drawer-label-hook.txt` after its matching `iget-object v10` line (the first line of that text file is context, not a duplicate instruction).
 4. In `decoded/smali/ginlemon/flower/widgets/searchbar/SearchBarWidget.smali`, insert the `invoke-static` from `home-render-hook.txt` immediately after `.locals 10` in method `u(FLp7b;Luec;)V`, exactly once. The text file includes the method header for context.
-5. Copy `search_panel.xml` to `decoded/res/layout/` and apply `active-search-hooks.txt` (mic binding, transparent async fill, localized hint). Apply the three insertions in `search-return-hooks.txt` to `decoded/smali/ginlemon/flower/searchPanel/SearchPanel.smali` (instance field, close-search Back branch and panel-exit cleanup). Change `versionCode: 660274` to `versionCode: 660281` in `decoded/apktool.yml`.
+5. Copy `search_panel.xml` to `decoded/res/layout/` and apply `active-search-hooks.txt` (mic binding, transparent async fill, localized hint). Apply the three insertions in `search-return-hooks.txt` to `decoded/smali/ginlemon/flower/searchPanel/SearchPanel.smali` (instance field, close-search Back branch and panel-exit cleanup). Change `versionCode: 660274` to `versionCode: 660282` in `decoded/apktool.yml`.
 6. Build with `apktool b decoded -o unsigned.apk`.
 7. Run `python patches/all-apps-search/align_apk.py unsigned.apk aligned.apk`.
 8. Sign `aligned.apk` using your own keystore, producing `SmartLauncher-AllAppsSearch-NoFlash.apk`.
@@ -61,4 +67,4 @@ Build, signed-APK decode, v2/v3 signature verification, 4-byte stored-entry alig
 
 No Android device/emulator is available here. These are structural/build checks, not proof the reported glass defect is fixed. On a device, first visit home, change the home search appearance/glass settings, then open All Apps. Confirm both bars respond to the same settings; also check reopening, rotation, wallpaper changes, search-row taps and mic launching/missing-handler feedback. Reference-style layout and touch behavior have not been visually tested on a device.
 
-This APK uses the same local certificate as 660275–660280, so an update over those builds should be accepted. It is not signed with the original base APK's key. Back up layout/settings before considering any uninstall; uninstalling can remove data. The temporary keystore is not committed.
+This APK uses the same local certificate as 660275–660281, so an update over those builds should be accepted. It is not signed with the original base APK's key. Back up layout/settings before considering any uninstall; uninstalling can remove data. The temporary keystore is not committed.

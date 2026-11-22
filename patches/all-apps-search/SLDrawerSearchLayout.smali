@@ -113,6 +113,8 @@
 
 .method public onPreDraw()Z
     .locals 6
+    invoke-direct {p0}, Lginlemon/flower/glass/SLDrawerSearchLayout;->updateIconTints()V
+
     invoke-virtual {p0}, Landroid/view/View;->isShown()Z
     move-result v0
     if-eqz v0, :done
@@ -160,4 +162,60 @@
     :done
     const/4 v0, 0x1
     return v0
+.end method
+
+# Use the native wallpaper/theme text foreground, never colorHighEmphasis accent.
+.method private updateIconTints()V
+    .locals 4
+    const/4 v0, 0x0
+    invoke-virtual {p0, v0}, Landroid/view/ViewGroup;->getChildAt(I)Landroid/view/View;
+    move-result-object v0
+    check-cast v0, Lginlemon/flower/widgets/searchbar/SearchBarWidget;
+    iget-object v0, v0, Lginlemon/flower/widgetUtils/compose/ViewWidgetComposableLayout;->J:Lp7b;
+    invoke-virtual {v0}, Lp7b;->j()Lskb;
+    move-result-object v0
+    iget-object v0, v0, Lskb;->b:Ldkb;
+    iget-object v0, v0, Ldkb;->b:Lgkb;
+    iget v1, v0, Lgkb;->a:I
+    move-object v0, p0
+    invoke-virtual {p0}, Landroid/view/ViewGroup;->getChildCount()I
+    move-result v2
+    const/4 v3, 0x1
+    if-ne v2, v3, :have_root
+    # In the editor the icon foreground is a sibling of the glass backdrop.
+    invoke-virtual {p0}, Landroid/view/View;->getParent()Landroid/view/ViewParent;
+    move-result-object v0
+    instance-of v2, v0, Landroid/view/View;
+    if-eqz v2, :done
+    check-cast v0, Landroid/view/View;
+    :have_root
+    const-string v2, "contrast_search_icon"
+    invoke-static {v0, v2, v1}, Lginlemon/flower/glass/SLDrawerSearchLayout;->tintIcon(Landroid/view/View;Ljava/lang/String;I)V
+    const-string v2, "contrast_mic_icon"
+    invoke-static {v0, v2, v1}, Lginlemon/flower/glass/SLDrawerSearchLayout;->tintIcon(Landroid/view/View;Ljava/lang/String;I)V
+    const-string v2, "active_search_mic"
+    invoke-static {v0, v2, v1}, Lginlemon/flower/glass/SLDrawerSearchLayout;->tintIcon(Landroid/view/View;Ljava/lang/String;I)V
+    :done
+    return-void
+.end method
+
+.method private static tintIcon(Landroid/view/View;Ljava/lang/String;I)V
+    .locals 2
+    invoke-virtual {p0, p1}, Landroid/view/View;->findViewWithTag(Ljava/lang/Object;)Landroid/view/View;
+    move-result-object v0
+    instance-of v1, v0, Landroid/widget/ImageView;
+    if-eqz v1, :done
+    check-cast v0, Landroid/widget/ImageView;
+    invoke-virtual {v0}, Landroid/widget/ImageView;->getImageTintList()Landroid/content/res/ColorStateList;
+    move-result-object v1
+    if-eqz v1, :apply
+    invoke-virtual {v1}, Landroid/content/res/ColorStateList;->getDefaultColor()I
+    move-result p0
+    if-eq p0, p2, :done
+    :apply
+    invoke-static {p2}, Landroid/content/res/ColorStateList;->valueOf(I)Landroid/content/res/ColorStateList;
+    move-result-object v1
+    invoke-virtual {v0, v1}, Landroid/widget/ImageView;->setImageTintList(Landroid/content/res/ColorStateList;)V
+    :done
+    return-void
 .end method
