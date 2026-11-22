@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge android:layout_width="fill_parent" android:layout_height="fill_parent"
+  xmlns:android="http://schemas.android.com/apk/res/android">
+    <FrameLayout android:orientation="vertical" android:id="@id/homeContent" android:clipChildren="false" android:layout_width="fill_parent" android:layout_height="fill_parent">
+        <ginlemon.flower.panels.superWidgetPanel.WidgetPager android:id="@id/widgetPager" android:clipChildren="false" android:clipToPadding="false" android:layout_width="fill_parent" android:layout_height="fill_parent" />
+        <ginlemon.flower.panels.superWidgetPanel.WidgetPager android:id="@id/dockPager" android:clipChildren="false" android:clipToPadding="false" android:layout_width="fill_parent" android:layout_height="fill_parent" />
+        <ginlemon.flower.homePanel.IndicatorView android:layout_gravity="center_horizontal" android:id="@id/page_indicator" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+        <ginlemon.flower.glance.SLGlanceIsland android:tag="sl_glance_island" android:layout_width="wrap_content" android:layout_height="44dp" android:layout_gravity="top|center_horizontal" android:layout_marginTop="64dp" />
+    </FrameLayout>
+    <FrameLayout android:layout_gravity="bottom" android:id="@id/dockViewContent" android:layout_width="fill_parent" android:layout_height="wrap_content" android:layout_alignParentBottom="true">
+        <androidx.appcompat.widget.AppCompatImageView android:layout_gravity="center|left" android:id="@id/leftButton" android:focusable="true" android:clickable="true" android:layout_width="@dimen/standbybutton_w" android:layout_height="@dimen/standbybutton_w" android:layout_marginLeft="4.0dip" android:layout_marginRight="4.0dip" android:scaleType="fitCenter" />
+        <androidx.appcompat.widget.AppCompatImageView android:layout_gravity="center|right" android:id="@id/rightButton" android:focusable="true" android:clickable="true" android:layout_width="@dimen/standbybutton_w" android:layout_height="@dimen/standbybutton_w" android:layout_marginLeft="4.0dip" android:layout_marginRight="4.0dip" android:scaleType="fitCenter" />
+    </FrameLayout>
+</merge>

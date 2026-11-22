@@ -1,6 +1,7 @@
 """Run after decoding the new APK: python check_build.py ORIGINAL_DECODED NEW_DECODED."""
 from pathlib import Path
 import sys
+import os
 import xml.etree.ElementTree as ET
 
 before, after = map(Path, sys.argv[1:])
@@ -14,7 +15,7 @@ for name in ("SearchBarWidget", "SearchBarWidgetViewModel"):
 wrapper = (after / "smali/ginlemon/flower/glass/SLDrawerSearchLayout.smali").read_text()
 assert wrapper.index("->v(I)V") < wrapper.index("->t()V")
 assert "SLDrawerSearchClick;" in wrapper
-assert "versionCode: 660288" in (after / "apktool.yml").read_text()
+assert "versionCode: " + os.environ.get("CHECK_VERSION", "660288") in (after / "apktool.yml").read_text()
 for folder in ("assets", "lib"):
     for original in (before / folder).rglob("*"):
         if original.is_file():
