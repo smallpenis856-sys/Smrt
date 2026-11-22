@@ -14,7 +14,7 @@ for name in ("SearchBarWidget", "SearchBarWidgetViewModel"):
 wrapper = (after / "smali/ginlemon/flower/glass/SLDrawerSearchLayout.smali").read_text()
 assert wrapper.index("->v(I)V") < wrapper.index("->t()V")
 assert "SLDrawerSearchClick;" in wrapper
-assert "versionCode: 660285" in (after / "apktool.yml").read_text()
+assert "versionCode: 660286" in (after / "apktool.yml").read_text()
 for folder in ("assets", "lib"):
     for original in (before / folder).rglob("*"):
         if original.is_file():
@@ -186,3 +186,13 @@ for already_default in (0, 1):
 for relative in ("smali_classes2/wq5.smali", "smali_classes2/vk.smali", "smali/go8.smali"):
     assert normalize((before / relative).read_text()) == normalize((after / relative).read_text()), relative
 print("PASS: startup default prompt disabled for all four default/pref combinations; manual default UI and saved preferences unchanged")
+
+queue = (after / "smali/lg7.smali").read_text()
+assert "Lmqa;->e:Lmqa;" not in queue
+start = queue.index("sget-object v0, Lmqa;->E:Lmqa;")
+queue_branch = queue[start:queue.index("return-void", start)]
+assert queue_branch.count("Lnqa;-><init>(Lmqa;I)V") == 4
+assert "filled-new-array {p1, v2, v3, v4}, [Lnqa;" in queue_branch
+for other_type in ("E", "F", "i", "D"):
+    assert f"Lmqa;->{other_type}:Lmqa;" in queue_branch
+print("PASS: default-home step absent from startup queue; four unrelated startup entries preserved")
