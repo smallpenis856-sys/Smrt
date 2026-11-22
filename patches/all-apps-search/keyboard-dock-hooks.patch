@@ -1,0 +1,31 @@
+--- a/smali/ginlemon/flower/searchPanel/SearchPanel.smali
++++ b/smali/ginlemon/flower/searchPanel/SearchPanel.smali
+@@ -66,0 +67 @@
++.field public slKeyboardDock:Lginlemon/flower/glass/SLKeyboardDock;
+@@ -399,0 +401,5 @@
++    new-instance v12, Lginlemon/flower/glass/SLKeyboardDock;
++    invoke-direct {v12, v11}, Lginlemon/flower/glass/SLKeyboardDock;-><init>(Landroid/view/ViewGroup;)V
++    iput-object v12, p0, Lginlemon/flower/searchPanel/SearchPanel;->slKeyboardDock:Lginlemon/flower/glass/SLKeyboardDock;
++
++
+@@ -3855,0 +3862,6 @@
++    iget-object v0, p0, Lginlemon/flower/searchPanel/SearchPanel;->slKeyboardDock:Lginlemon/flower/glass/SLKeyboardDock;
++    if-eqz v0, :sl_dock_ready
++    invoke-virtual {v0}, Lginlemon/flower/glass/SLKeyboardDock;->stop()V
++    :sl_dock_ready
++
++
+@@ -4368,0 +4381,6 @@
++    iget-object v0, p0, Lginlemon/flower/searchPanel/SearchPanel;->slKeyboardDock:Lginlemon/flower/glass/SLKeyboardDock;
++    if-eqz v0, :sl_dock_ready
++    invoke-virtual {v0}, Lginlemon/flower/glass/SLKeyboardDock;->start()V
++    :sl_dock_ready
++
++
+@@ -4448,0 +4467,6 @@
++
++    iget-object v0, p0, Lginlemon/flower/searchPanel/SearchPanel;->slKeyboardDock:Lginlemon/flower/glass/SLKeyboardDock;
++    if-eqz v0, :sl_dock_ready
++    invoke-virtual {v0}, Lginlemon/flower/glass/SLKeyboardDock;->stop()V
++    :sl_dock_ready
++

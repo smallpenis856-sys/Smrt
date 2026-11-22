@@ -1,0 +1,11 @@
+--- a/smali/jj3.smali
++++ b/smali/jj3.smali
+@@ -102,7 +102,7 @@
+ 
+     if-nez p1, :cond_1
+ 
+-    sget-object v1, Lge3;->i:Lge3;
++    const/4 v1, 0x0
+ 
+     goto :goto_0
+ 

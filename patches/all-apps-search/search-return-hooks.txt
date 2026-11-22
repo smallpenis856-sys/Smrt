@@ -1,0 +1,14 @@
+Add instance field to SearchPanel.smali:
+.field public slReturnPanel:Lj48;
+
+In c()Z, immediately after :cond_0 (after the native keyboard-visible early return), insert:
+    invoke-static {p0}, Lginlemon/flower/glass/SLDrawerSearchReturn;->restore(Lginlemon/flower/searchPanel/SearchPanel;)Z
+    move-result v0
+    if-eqz v0, :sl_regular_back
+    const/4 v0, 0x1
+    return v0
+    :sl_regular_back
+
+At start of y()V, after .locals 5, insert:
+    const/4 v0, 0x0
+    iput-object v0, p0, Lginlemon/flower/searchPanel/SearchPanel;->slReturnPanel:Lj48;
