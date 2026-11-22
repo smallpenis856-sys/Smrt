@@ -8,6 +8,11 @@
 .field private static homeStrength:F
 .field private static homeGlassEnabled:Z
 
+# Per-instance cache: avoid re-walking the view tree for the same theme every frame.
+.field private tintReady:Z
+.field private tintColor:I
+.field private tintRoot:Landroid/view/View;
+
 .method public constructor <init>(Landroid/content/Context;Landroid/util/AttributeSet;)V
     .locals 0
 
@@ -83,6 +88,10 @@
     invoke-virtual {p0}, Landroid/view/View;->getViewTreeObserver()Landroid/view/ViewTreeObserver;
     move-result-object v0
     invoke-virtual {v0, p0}, Landroid/view/ViewTreeObserver;->removeOnPreDrawListener(Landroid/view/ViewTreeObserver$OnPreDrawListener;)V
+    const/4 v0, 0x0
+    iput-boolean v0, p0, Lginlemon/flower/glass/SLDrawerSearchLayout;->tintReady:Z
+    const/4 v0, 0x0
+    iput-object v0, p0, Lginlemon/flower/glass/SLDrawerSearchLayout;->tintRoot:Landroid/view/View;
     invoke-super {p0}, Landroid/widget/FrameLayout;->onDetachedFromWindow()V
     return-void
 .end method
@@ -113,11 +122,15 @@
 
 .method public onPreDraw()Z
     .locals 6
-    invoke-direct {p0}, Lginlemon/flower/glass/SLDrawerSearchLayout;->updateIconTints()V
-
     invoke-virtual {p0}, Landroid/view/View;->isShown()Z
     move-result v0
-    if-eqz v0, :done
+    if-nez v0, :visible
+    # A hidden panel needs no tint or state work; reapply once it is shown again.
+    const/4 v0, 0x0
+    iput-boolean v0, p0, Lginlemon/flower/glass/SLDrawerSearchLayout;->tintReady:Z
+    goto :done
+    :visible
+    invoke-direct {p0}, Lginlemon/flower/glass/SLDrawerSearchLayout;->updateIconTints()V
     sget-object v0, Lginlemon/flower/glass/SLDrawerSearchLayout;->homeState:Landroidx/lifecycle/ViewModel;
     if-eqz v0, :done
     const/4 v1, 0x0
@@ -189,6 +202,18 @@
     if-eqz v2, :done
     check-cast v0, Landroid/view/View;
     :have_root
+    # Root changes or a new foreground color require one fresh update.
+    iget-boolean v2, p0, Lginlemon/flower/glass/SLDrawerSearchLayout;->tintReady:Z
+    if-eqz v2, :refresh
+    iget-object v2, p0, Lginlemon/flower/glass/SLDrawerSearchLayout;->tintRoot:Landroid/view/View;
+    if-ne v2, v0, :refresh
+    iget v2, p0, Lginlemon/flower/glass/SLDrawerSearchLayout;->tintColor:I
+    if-eq v2, v1, :done
+    :refresh
+    iput-object v0, p0, Lginlemon/flower/glass/SLDrawerSearchLayout;->tintRoot:Landroid/view/View;
+    iput v1, p0, Lginlemon/flower/glass/SLDrawerSearchLayout;->tintColor:I
+    const/4 v2, 0x1
+    iput-boolean v2, p0, Lginlemon/flower/glass/SLDrawerSearchLayout;->tintReady:Z
     const-string v2, "contrast_search_icon"
     invoke-static {v0, v2, v1}, Lginlemon/flower/glass/SLDrawerSearchLayout;->tintIcon(Landroid/view/View;Ljava/lang/String;I)V
     const-string v2, "contrast_mic_icon"

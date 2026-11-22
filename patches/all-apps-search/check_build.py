@@ -14,7 +14,7 @@ for name in ("SearchBarWidget", "SearchBarWidgetViewModel"):
 wrapper = (after / "smali/ginlemon/flower/glass/SLDrawerSearchLayout.smali").read_text()
 assert wrapper.index("->v(I)V") < wrapper.index("->t()V")
 assert "SLDrawerSearchClick;" in wrapper
-assert "versionCode: 660287" in (after / "apktool.yml").read_text()
+assert "versionCode: 660288" in (after / "apktool.yml").read_text()
 for folder in ("assets", "lib"):
     for original in (before / folder).rglob("*"):
         if original.is_file():
@@ -228,3 +228,46 @@ assert "DecelerateInterpolator;-><init>()V" in settle
 assert "DecelerateInterpolator;-><init>(F)V" in settle
 assert settle.count("LSLAnimSpeed;->setDur(Landroid/animation/ValueAnimator;J)") == 2
 print("PASS: non-bouncy shared panel settle interpolation and scaled matching base durations")
+
+# The tint scan runs only while visible, and only on the first frame or a
+# foreground/root change. Detach clears the parent reference and cache.
+predraw = wrapper.split(".method public onPreDraw()Z", 1)[1].split(".end method", 1)[0]
+assert predraw.index("->isShown()Z") < predraw.index("->updateIconTints()V")
+assert predraw.index("->tintReady:Z") < predraw.index("->updateIconTints()V")
+assert "->tintRoot:Landroid/view/View;" in color_update
+assert "->tintColor:I" in color_update and "->tintReady:Z" in color_update
+assert color_update.index("if-eq v2, v1, :cond_") < color_update.index('"contrast_search_icon"')
+detach = wrapper.split(".method protected onDetachedFromWindow()V", 1)[1].split(".end method", 1)[0]
+assert "->tintReady:Z" in detach and "->tintRoot:Landroid/view/View;" in detach
+print("PASS: hidden panels skip work; unchanged foreground/root bypasses repeated icon-tree scans; detach clears cache")
+
+# Interpret the rebuilt smali's cache guard for first draw, stable frame,
+# theme change and replacement parent. This tests the assembled branch logic.
+segment = color_update[color_update.index("    iget-boolean v2, p0,"):]
+segment = segment[:segment.index("    iput-object v0, p0,")]
+ops = [line.strip() for line in segment.splitlines() if line.strip()]
+for ready, same_root, same_color, refresh in (
+    (False, True, True, True), (True, True, True, False),
+    (True, True, False, True), (True, False, True, True),
+):
+    fields = {"tintReady": ready, "tintRoot": same_root, "tintColor": same_color}
+    registers = {"v0": True, "v1": True}
+    outcome = True
+    for op in ops:
+        if op.startswith(("iget-boolean ", "iget-object ", "iget ")):
+            field = op.split("->", 1)[1].split(":", 1)[0]
+            registers["v2"] = fields[field]
+        elif op.startswith("if-eqz "):
+            if not registers["v2"]:
+                break
+        elif op.startswith("if-ne "):
+            if registers["v2"] != registers["v0"]:
+                break
+        elif op.startswith("if-eq "):
+            if registers["v2"] == registers["v1"]:
+                outcome = False
+                break
+        elif not op.startswith(":"):
+            raise AssertionError("Unexpected tint cache guard: " + op)
+    assert outcome == refresh, (ready, same_root, same_color)
+print("PASS: rebuilt cache guard refreshes initially and on theme/root changes, skips unchanged frames")
