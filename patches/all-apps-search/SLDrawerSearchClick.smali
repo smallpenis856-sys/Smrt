@@ -9,7 +9,7 @@
 .end method
 
 .method public onClick(Landroid/view/View;)V
-    .locals 7
+    .locals 8
     invoke-virtual {p1}, Landroid/view/View;->getContext()Landroid/content/Context;
     move-result-object v0
     invoke-static {v0}, Lfn0;->x(Landroid/content/Context;)Lginlemon/flower/HomeScreen;
@@ -29,6 +29,11 @@
     instance-of v3, v6, Lginlemon/flower/searchPanel/SearchPanel;
     if-eqz v3, :done
 
+    check-cast v6, Lginlemon/flower/searchPanel/SearchPanel;
+    iget-object v3, v1, Lf58;->U:Lw48;
+    invoke-virtual {v1, v3}, Lf58;->l(Lw48;)Lj48;
+    move-result-object v7
+
     # Normalize axes and show search synchronously, before Android draws a frame.
     # HomeScreen.H/G use f58.z, which animates search AFTER resetting to home.
     sget-object v3, Lo48;->INSTANCE:Lo48;
@@ -38,6 +43,7 @@
     invoke-virtual {v1, v3, v4, v5, v0}, Lf58;->r(Lw48;ZFLcs4;)Z
     const/4 v5, 0x0
     invoke-virtual {v1, v2, v4, v5, v0}, Lf58;->q(Lj48;ZFLcs4;)V
+    iput-object v7, v6, Lginlemon/flower/searchPanel/SearchPanel;->slReturnPanel:Lj48;
     check-cast v6, Lginlemon/flower/searchPanel/SearchPanel;
     invoke-virtual {v6}, Lginlemon/flower/searchPanel/SearchPanel;->H()V
     return-void

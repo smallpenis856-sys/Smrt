@@ -1,6 +1,14 @@
 # All Apps: copy the actual home search settings
 
-Base: `SmartLauncher-BottomSearch.apk` (660274). Current output: `SmartLauncher-AllAppsSearch-NoFlash.apk` (660279). Earlier outputs 660275–660278 remain for history, not for installing this change. The user confirmed the glass effect was correct after changing wallpaper.
+Base: `SmartLauncher-BottomSearch.apk` (660274). Current output: `SmartLauncher-AllAppsSearch-NoFlash.apk` (660280; replaces the previous NoFlash download). Earlier outputs 660275–660279 remain for history, not for installing this change. The user confirmed the glass effect was correct after changing wallpaper.
+
+## Back returns to All Apps (660280)
+
+The drawer click now records the actual originating workspace panel (`f58.l(U)`) before navigation, then stores it on the SearchPanel instance after the synchronous transition. No static navigation flag or Activity reference is introduced.
+
+In `SearchPanel.c()` the original keyboard-visible path is retained: Back first hides the keyboard. On the subsequent close-search Back, if a drawer origin was recorded, `SLDrawerSearchReturn.restore()` validates that panel still exists, consumes the one-shot origin, hides the keyboard and restores that same panel synchronously. Returning `true` prevents the launcher's outer Back handler from subsequently navigating home. Reusing the existing drawer instance is intended to preserve its scroll state. `SearchPanel.y()` clears the origin on any exit so Home presses or later home-originated searches cannot inherit it. With no origin or a stale/removed target, native Back handling continues unchanged.
+
+This is native search with an origin-aware return path, not inline app filtering. The search-panel Back callback and exit hook are the only new global-class changes; home search has no return marker and uses its original path. Device testing is still required for keyboard-first Back, back gesture, Home then reopen, result launch then return, scroll retention and rotation.
 
 ## Drawer search transition (660279)
 
@@ -32,9 +40,9 @@ With Java, Apktool 2.9.3 and apksigner available:
 
 1. Decode the base APK with `apktool d SmartLauncher-BottomSearch.apk -o decoded`.
 2. Copy `drawer_bottom_search.xml` to `decoded/res/layout/` and `SLDrawerSearchLayout.smali` to `decoded/smali/ginlemon/flower/glass/`.
-3. Copy both `ic_drawer_*_outline.xml` files to `decoded/res/drawable/` and both `SLDrawerVoiceClick.smali` and `SLDrawerSearchClick.smali` to `decoded/smali/ginlemon/flower/glass/`. In `decoded/smali/qv9.smali`, insert the block in `drawer-label-hook.txt` after its matching `iget-object v10` line (the first line of that text file is context, not a duplicate instruction).
+3. Copy both `ic_drawer_*_outline.xml` files to `decoded/res/drawable/` and `SLDrawerVoiceClick.smali`, `SLDrawerSearchClick.smali` and `SLDrawerSearchReturn.smali` to `decoded/smali/ginlemon/flower/glass/`. In `decoded/smali/qv9.smali`, insert the block in `drawer-label-hook.txt` after its matching `iget-object v10` line (the first line of that text file is context, not a duplicate instruction).
 4. In `decoded/smali/ginlemon/flower/widgets/searchbar/SearchBarWidget.smali`, insert the `invoke-static` from `home-render-hook.txt` immediately after `.locals 10` in method `u(FLp7b;Luec;)V`, exactly once. The text file includes the method header for context.
-5. Change `versionCode: 660274` to `versionCode: 660279` in `decoded/apktool.yml`.
+5. Apply the three insertions in `search-return-hooks.txt` to `decoded/smali/ginlemon/flower/searchPanel/SearchPanel.smali` (instance field, close-search Back branch and panel-exit cleanup). Change `versionCode: 660274` to `versionCode: 660280` in `decoded/apktool.yml`.
 6. Build with `apktool b decoded -o unsigned.apk`.
 7. Run `python patches/all-apps-search/align_apk.py unsigned.apk aligned.apk`.
 8. Sign `aligned.apk` using your own keystore, producing `SmartLauncher-AllAppsSearch-NoFlash.apk`.
@@ -47,4 +55,4 @@ Build, signed-APK decode, v2/v3 signature verification, 4-byte stored-entry alig
 
 No Android device/emulator is available here. These are structural/build checks, not proof the reported glass defect is fixed. On a device, first visit home, change the home search appearance/glass settings, then open All Apps. Confirm both bars respond to the same settings; also check reopening, rotation, wallpaper changes, search-row taps and mic launching/missing-handler feedback. Reference-style layout and touch behavior have not been visually tested on a device.
 
-This APK uses the same local certificate as 660275–660278, so an update over those builds should be accepted. It is not signed with the original base APK's key. Back up layout/settings before considering any uninstall; uninstalling can remove data. The temporary keystore is not committed.
+This APK uses the same local certificate as 660275–660279, so an update over those builds should be accepted. It is not signed with the original base APK's key. Back up layout/settings before considering any uninstall; uninstalling can remove data. The temporary keystore is not committed.

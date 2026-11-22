@@ -14,7 +14,7 @@ for name in ("SearchBarWidget", "SearchBarWidgetViewModel"):
 wrapper = (after / "smali/ginlemon/flower/glass/SLDrawerSearchLayout.smali").read_text()
 assert wrapper.index("->v(I)V") < wrapper.index("->t()V")
 assert "SLDrawerSearchClick;" in wrapper
-assert "versionCode: 660279" in (after / "apktool.yml").read_text()
+assert "versionCode: 660280" in (after / "apktool.yml").read_text()
 for folder in ("assets", "lib"):
     for original in (before / folder).rglob("*"):
         if original.is_file():
@@ -82,7 +82,22 @@ assert "{v1, v2, v4, v5, v0}" in click  # Same false animation flag for both tra
 for relative in (
     "smali/f58.smali",
     "smali/ginlemon/flower/HomeScreen.smali",
-    "smali/ginlemon/flower/searchPanel/SearchPanel.smali",
 ):
     assert (before / relative).read_bytes() == (after / relative).read_bytes(), relative
 print("PASS: synchronous drawer-only search navigation, focus after navigation, animation guard, missing-search path, unchanged global navigation")
+
+search_panel = (after / "smali/ginlemon/flower/searchPanel/SearchPanel.smali").read_text()
+back = search_panel.split(".method public final c()Z", 1)[1].split(".end method", 1)[0]
+exit_ = search_panel.split(".method public final y()V", 1)[1].split(".end method", 1)[0]
+assert back.index("SearchPanel;->v()V") < back.index("SLDrawerSearchReturn;->restore(")
+assert back.index("SLDrawerSearchReturn;->restore(") < back.index("HomeScreen;->q(Z)V")
+assert "->slReturnPanel:Lj48;" in exit_  # Clear origin on ANY exit, including Home.
+assert click.index("Lf58;->l(Lw48;)") < click.index("Lf58;->r(")
+assert click.index("Lf58;->q(") < click.index("->slReturnPanel:Lj48;") < click.index("SearchPanel;->H()V")
+restore = (after / "smali/ginlemon/flower/glass/SLDrawerSearchReturn.smali").read_text()
+assert "->k(I)Lj48;" in restore and "if-ne v2, v3," in restore
+assert restore.index("iput-object") < restore.index("Lf58;->q(")
+assert "->v()V" in restore  # Hide keyboard before restoring drawer.
+assert "const/4 v4, 0x0" in restore
+assert "{v1, v2, v4, v5, v0}" in restore
+print("PASS: origin recorded after navigation, keyboard-first Back, one-shot drawer restore, stale target guard and exit cleanup")
