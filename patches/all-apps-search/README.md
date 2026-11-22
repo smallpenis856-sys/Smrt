@@ -1,12 +1,18 @@
-# All Apps native home search bar
+# All Apps: copy the actual home search settings
 
-Base: `SmartLauncher-BottomSearch.apk` (660274), the newest existing APK by its embedded build timestamps. Previous output: `SmartLauncher-AllAppsSearch.apk` (660275). Current output: `SmartLauncher-AllAppsSearch-GlassFix.apk` (660276).
+Base: `SmartLauncher-BottomSearch.apk` (660274). Current output: `SmartLauncher-AllAppsSearch-SettingsCopy.apk` (660277). Earlier outputs 660275 and 660276 remain for history, not for installing this fix.
 
-## Scope
+## Change and scope
 
-Replace only the drawer's custom glass/text bar with the existing home `SearchBarWidget`, using its original Compose renderer, icons, typography and theme. Preserve the drawer's bottom constraints, 56dp height, 44dp side margins, 28dp bottom margin and existing `SLSearchClick` action. No home widget code, app data, permissions, assets or native libraries are changed.
+The previous build searched the attached view tree for a home search bar; that can fall back to the default bar when the home widget is not in that tree. The user reported no visual change. This build removes that discovery code.
 
-The FrameLayout initializes a fallback native widget (reserved ID -275), then finds the first initialized home search widget, excluding its own subtree. While attached and visible it observes pre-draw, sharing the home ViewModel/state flow, appearance mode, wallpaper renderer and glass strength/enabled values. Compose is reset only when these references/settings change; state-flow changes otherwise recompose normally. Rendering remains in the drawer child, not a screenshot of the home bar. The listener is removed on detach and detached cached source widgets are rediscovered. No preferences are written. With no initialized home search widget, the default native bar remains available.
+A single hook in the existing `SearchBarWidget.u(float, renderer, appearance)` render entry point publishes the actual home ViewModel (including its per-widget `gu9` settings/state flow), appearance mode, wallpaper renderer, glass strength and enabled flag. The All Apps instance is tagged `all_apps_search` and explicitly excluded from publishing, so its default settings cannot overwrite the captured home settings.
+
+The drawer copies those exact references/settings before drawing and resets its Compose content only when necessary. Existing native state-flow collection handles subsequent per-widget setting changes. Home rendering itself is otherwise unchanged. This no longer requires finding an attached home view. It does not take a screenshot or write preferences.
+
+The native home widget is used inside the existing drawer bottom position (56dp height, 44dp side margins, 28dp bottom margin). `SLSearchClick` preserves the drawer's existing search action. The reserved fallback ID -275 remains only until the first home render publishes its settings.
+
+Limits: the last rendered home search bar supplies settings if several home bars exist. If there is no initialized home search bar, the default native bar is the fallback. The wallpaper renderer is reused; a separate live blur implementation for scrolling app icons is not added.
 
 ## Rebuild
 
@@ -14,17 +20,18 @@ With Java, Apktool 2.9.3 and apksigner available:
 
 1. Decode the base APK with `apktool d SmartLauncher-BottomSearch.apk -o decoded`.
 2. Copy `drawer_bottom_search.xml` to `decoded/res/layout/` and `SLDrawerSearchLayout.smali` to `decoded/smali/ginlemon/flower/glass/`.
-3. Change `versionCode: 660274` to `versionCode: 660276` in `decoded/apktool.yml`.
-4. Build with `apktool b decoded -o unsigned.apk`.
-5. Run `python patches/all-apps-search/align_apk.py unsigned.apk aligned.apk`.
-6. Sign `aligned.apk` with your own keystore using apksigner, producing `SmartLauncher-AllAppsSearch-GlassFix.apk`.
-7. Verify with `apksigner verify --verbose SmartLauncher-AllAppsSearch-GlassFix.apk` and `python patches/all-apps-search/align_apk.py SmartLauncher-AllAppsSearch-GlassFix.apk`.
-8. Decode the signed result to `verified`, then run `python patches/all-apps-search/check_build.py decoded verified`.
+3. In `decoded/smali/ginlemon/flower/widgets/searchbar/SearchBarWidget.smali`, insert the `invoke-static` from `home-render-hook.txt` immediately after `.locals 10` in method `u(FLp7b;Luec;)V`, exactly once. The text file includes the method header for context.
+4. Change `versionCode: 660274` to `versionCode: 660277` in `decoded/apktool.yml`.
+5. Build with `apktool b decoded -o unsigned.apk`.
+6. Run `python patches/all-apps-search/align_apk.py unsigned.apk aligned.apk`.
+7. Sign `aligned.apk` using your own keystore, producing `SmartLauncher-AllAppsSearch-SettingsCopy.apk`.
+8. Verify with `apksigner verify --verbose SmartLauncher-AllAppsSearch-SettingsCopy.apk` and `python patches/all-apps-search/align_apk.py SmartLauncher-AllAppsSearch-SettingsCopy.apk`.
+9. Decode the signed result to `verified`, then run `python patches/all-apps-search/check_build.py decoded verified`.
 
-## Validation and limits
+## Checks and installation
 
-Build and signed-APK decode passed; APK v2/v3 signatures verified. Stored ZIP entries are 4-byte aligned, native libraries 16KiB aligned. Round-trip checks confirm the correct widget, initialization order, version and unchanged home widget, assets and native libraries.
+Build, signed-APK decode, v2/v3 signature verification, 4-byte stored-entry alignment and 16KiB native-library alignment passed. Round-trip assertions check the render hook, drawer-tag exclusion, no tree discovery, conditional redraw, listener removal, version, native widget/ViewModel integrity against build inputs and unchanged assets/native libraries.
 
-No Android device/emulator was available: visual parity, tapping, keyboard, dark/light mode, rotation, long press and navigation insets still need on-device testing. The first initialized home search widget supplies live customizations; multiple home bars with different styles are not individually selectable. No physical-device verification of the reported glass issue has been possible.
+No Android device/emulator is available here. These are structural/build checks, not proof the reported glass defect is fixed. On a device, first visit home, change the home search appearance/glass settings, then open All Apps. Confirm both bars respond to the same settings; also check reopening, rotation, wallpaper changes and search taps.
 
-The output uses the same local signing certificate as 660275 (verified), but not the original base APK's key. It should update the previous AllAppsSearch build; Android may reject updates over differently signed builds. Back up launcher layout/settings before considering uninstalling the old app; uninstalling can remove its data. The temporary signing key is not committed.
+This APK uses the same local certificate as 660275/660276, so an update over those builds should be accepted. It is not signed with the original base APK's key. Back up layout/settings before considering any uninstall; uninstalling can remove data. The temporary keystore is not committed.

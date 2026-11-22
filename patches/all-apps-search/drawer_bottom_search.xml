@@ -13,6 +13,7 @@
     app:layout_constraintEnd_toEndOf="parent"
     app:layout_constraintStart_toStartOf="parent">
     <ginlemon.flower.widgets.searchbar.SearchBarWidget
+        android:tag="all_apps_search"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 </ginlemon.flower.glass.SLDrawerSearchLayout>
