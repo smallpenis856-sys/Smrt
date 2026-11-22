@@ -1,5 +1,3 @@
 .cache/
 *.apk.idsig
 __pycache__/
-
-.signing-local/
