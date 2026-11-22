@@ -1,6 +1,12 @@
 # All Apps: copy the actual home search settings
 
-Base: `SmartLauncher-BottomSearch.apk` (660274). Current output: `SmartLauncher-AllAppsSearch-NoFlash.apk` (660284; replaces the previous NoFlash download). Earlier outputs 660275–660283 remain for history, not for installing this change. The user confirmed the glass effect was correct after changing wallpaper.
+Base: `SmartLauncher-BottomSearch.apk` (660274). Current output: `SmartLauncher-AllAppsSearch-NoFlash.apk` (660285; replaces the previous NoFlash download). Earlier outputs 660275–660284 remain for history, not for installing this change. The user confirmed the glass effect was correct after changing wallpaper.
+
+## No automatic “Welcome home / Set as default” prompt (660285)
+
+The supplied screenshot identifies the launcher's own default-home prompt, not Android's Home-app chooser. The startup prompt queue (`oqa`) filters prompt types through the predicate in `n90`. Enum `mqa.SET_AS_DEFAULT` is ordinal 0. Only that branch now always returns false, irrespective of whether an older installation saved `setSlAsDefaultPopup=true`. Other startup prompt types (updates, what's new, crash info, privacy policy) keep their existing conditions.
+
+Apply `no-startup-default-prompt.patch` to the decoded APK. This does not change the default launcher, impersonate Android's Home role, reset preferences, remove the HOME intent filter or disable the manual default-home settings UI. Users can still select the launcher in Android settings. Automated signed-APK checks evaluate all four default-status/popup-preference combinations and verify the manual default UI and preferences are unchanged. Fresh-start behavior still needs physical-device testing.
 
 ## No first-run category suggestion (660284)
 
@@ -62,7 +68,7 @@ With Java, Apktool 2.9.3 and apksigner available:
 2. Copy `drawer_bottom_search.xml` to `decoded/res/layout/` and `SLDrawerSearchLayout.smali` to `decoded/smali/ginlemon/flower/glass/`.
 3. Copy both `ic_drawer_*_outline.xml` files to `decoded/res/drawable/` and `SLDrawerVoiceClick.smali`, `SLDrawerSearchClick.smali` and `SLDrawerSearchReturn.smali` to `decoded/smali/ginlemon/flower/glass/`. In `decoded/smali/qv9.smali`, insert the block in `drawer-label-hook.txt` after its matching `iget-object v10` line (the first line of that text file is context, not a duplicate instruction).
 4. In `decoded/smali/ginlemon/flower/widgets/searchbar/SearchBarWidget.smali`, insert the `invoke-static` from `home-render-hook.txt` immediately after `.locals 10` in method `u(FLp7b;Luec;)V`, exactly once. The text file includes the method header for context.
-5. Apply `no-category-suggestion.patch` inside the decoded directory. Copy `search_panel.xml` to `decoded/res/layout/` and apply `active-search-hooks.txt` (mic binding, transparent async fill, localized hint). Apply the three insertions in `search-return-hooks.txt` to `decoded/smali/ginlemon/flower/searchPanel/SearchPanel.smali` (instance field, close-search Back branch and panel-exit cleanup). Change `versionCode: 660274` to `versionCode: 660284` in `decoded/apktool.yml`.
+5. Apply `no-category-suggestion.patch` and `no-startup-default-prompt.patch` inside the decoded directory. Copy `search_panel.xml` to `decoded/res/layout/` and apply `active-search-hooks.txt` (mic binding, transparent async fill, localized hint). Apply the three insertions in `search-return-hooks.txt` to `decoded/smali/ginlemon/flower/searchPanel/SearchPanel.smali` (instance field, close-search Back branch and panel-exit cleanup). Change `versionCode: 660274` to `versionCode: 660285` in `decoded/apktool.yml`.
 6. Build with `apktool b decoded -o unsigned.apk`.
 7. Run `python patches/all-apps-search/align_apk.py unsigned.apk aligned.apk`.
 8. Sign `aligned.apk` using your own keystore, producing `SmartLauncher-AllAppsSearch-NoFlash.apk`.
@@ -75,4 +81,4 @@ Build, signed-APK decode, v2/v3 signature verification, 4-byte stored-entry alig
 
 No Android device/emulator is available here. These are structural/build checks, not proof the reported glass defect is fixed. On a device, first visit home, change the home search appearance/glass settings, then open All Apps. Confirm both bars respond to the same settings; also check reopening, rotation, wallpaper changes, search-row taps and mic launching/missing-handler feedback. Reference-style layout and touch behavior have not been visually tested on a device.
 
-This APK uses the same local certificate as 660275–660283, so an update over those builds should be accepted. It is not signed with the original base APK's key. Back up layout/settings before considering any uninstall; uninstalling can remove data. The temporary keystore is not committed.
+This APK uses the same local certificate as 660275–660284, so an update over those builds should be accepted. It is not signed with the original base APK's key. Back up layout/settings before considering any uninstall; uninstalling can remove data. The temporary keystore is not committed.

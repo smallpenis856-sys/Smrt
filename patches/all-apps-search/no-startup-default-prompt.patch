@@ -1,0 +1,11 @@
+--- a/smali/n90.smali
++++ b/smali/n90.smali
+@@ -1958,7 +1958,7 @@
+ 
+     if-nez v0, :cond_20
+ 
+-    if-eqz v1, :cond_20
++    goto :cond_20
+ 
+     :goto_1a
+     const/4 v5, 0x1

@@ -14,7 +14,7 @@ for name in ("SearchBarWidget", "SearchBarWidgetViewModel"):
 wrapper = (after / "smali/ginlemon/flower/glass/SLDrawerSearchLayout.smali").read_text()
 assert wrapper.index("->v(I)V") < wrapper.index("->t()V")
 assert "SLDrawerSearchClick;" in wrapper
-assert "versionCode: 660284" in (after / "apktool.yml").read_text()
+assert "versionCode: 660285" in (after / "apktool.yml").read_text()
 for folder in ("assets", "lib"):
     for original in (before / folder).rglob("*"):
         if original.is_file():
@@ -152,3 +152,37 @@ assert normalize((before / "smali/jj3.smali").read_text()) == normalize(producer
 assert (before / "smali/go8.smali").read_bytes() == (after / "smali/go8.smali").read_bytes()
 assert not (after / "smali/ginlemon/flower/glass/SLLiveBackdrop.smali").exists()
 print("PASS: category suggestion emission suppressed, confirmation/preferences intact, reverted live-backdrop feature remains absent")
+
+# Check the signed APK's automatic-prompt branch, including both existing preferences.
+startup = (after / "smali/n90.smali").read_text().split("Lgo8;->F:Lbo8;", 1)[1].split(":pswitch_4", 1)[0]
+start = startup.index("move-result v1") + len("move-result v1")
+program = [line.strip() for line in startup[start:].splitlines() if line.strip()]
+labels = {line: i for i, line in enumerate(program) if line.startswith(":")}
+for already_default in (0, 1):
+    for stored_popup_enabled in (0, 1):
+        registers = {"v0": already_default, "v1": stored_popup_enabled}
+        pc = 0
+        for _ in range(30):
+            instruction = program[pc]
+            if instruction.startswith("invoke-static {v5}"):
+                assert registers["v5"] == 0
+                break
+            if instruction.startswith("if-nez "):
+                register, label = instruction[len("if-nez "):].split(", ")
+                if registers[register]:
+                    pc = labels[label]
+                    continue
+            elif instruction.startswith("goto "):
+                pc = labels[instruction.split()[1]]
+                continue
+            elif instruction.startswith("const/4 "):
+                register, value = instruction[len("const/4 "):].split(", ")
+                registers[register] = int(value, 16)
+            elif not instruction.startswith(":"):
+                raise AssertionError("Unexpected startup predicate instruction: " + instruction)
+            pc += 1
+        else:
+            raise AssertionError("Startup predicate did not terminate")
+for relative in ("smali_classes2/wq5.smali", "smali_classes2/vk.smali", "smali/go8.smali"):
+    assert normalize((before / relative).read_text()) == normalize((after / relative).read_text()), relative
+print("PASS: startup default prompt disabled for all four default/pref combinations; manual default UI and saved preferences unchanged")
