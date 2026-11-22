@@ -14,7 +14,7 @@ for name in ("SearchBarWidget", "SearchBarWidgetViewModel"):
 wrapper = (after / "smali/ginlemon/flower/glass/SLDrawerSearchLayout.smali").read_text()
 assert wrapper.index("->v(I)V") < wrapper.index("->t()V")
 assert "SLDrawerSearchClick;" in wrapper
-assert "versionCode: 660282" in (after / "apktool.yml").read_text()
+assert "versionCode: 660284" in (after / "apktool.yml").read_text()
 for folder in ("assets", "lib"):
     for original in (before / folder).rglob("*"):
         if original.is_file():
@@ -142,3 +142,13 @@ apply_tint = wrapper.split(".method private static tintIcon", 1)[1]
 assert "->getDefaultColor()I" in apply_tint and "if-eq p0, p2," in apply_tint
 assert "->setImageTintList(" in apply_tint
 print("PASS: both search/mic pairs use native wallpaper foreground, neutral XML fallback, per-frame theme refresh and unchanged-color invalidation guard")
+
+producer = (after / "smali/jj3.smali").read_text()
+assert "sget-object v1, Lge3;->i:Lge3;" not in producer
+assert "sget-object v1, Lge3;->D:Lge3;" in producer  # Confirmation remains available.
+# Compare against the patched build input so no other flow is accidentally removed.
+normalize = lambda text: [line.strip() for line in text.splitlines() if line.strip() and line.strip() != "nop"]
+assert normalize((before / "smali/jj3.smali").read_text()) == normalize(producer)
+assert (before / "smali/go8.smali").read_bytes() == (after / "smali/go8.smali").read_bytes()
+assert not (after / "smali/ginlemon/flower/glass/SLLiveBackdrop.smali").exists()
+print("PASS: category suggestion emission suppressed, confirmation/preferences intact, reverted live-backdrop feature remains absent")
