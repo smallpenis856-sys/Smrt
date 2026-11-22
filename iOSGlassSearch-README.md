@@ -31,8 +31,24 @@ re-signed with a fresh APK Signature Scheme v2 signature
 (`RSA PKCS#1 v1.5 / SHA-256`, APK Signing Block ID `0x7109871a`), self-signed
 cert `CN=SmartLauncher iOS Glass`. minSdk is 24, where v2 is enough.
 
-Verified: content digest, RSA signature over signed data, certificate/key match,
-ZIP integrity, all 1455 entries intact except the one layout.
+Verification (this build): the APK is accepted by an **independent**
+third-party Python v2 verifier (`shuxin/apk-signature-verify`) that also accepts
+the upstream `apksigner` fixture used as ground truth — `v2=True, errors=[]` for
+both. Additionally checked locally: v2 content digest, RSA PKCS#1 v1.5 / SHA-256
+signature over the signed-data blob, certificate/key match, self-signed chain,
+ZIP integrity, and all 1455 entries intact except the one layout.
+
+Two real bugs were found and fixed in the build tooling:
+
+1. **Cumulative chunk hashing.** The content digest computes one SHA-256 per
+   1 MiB chunk (`0xa5 || u32le(len) || data`). The builder reused a single hash
+   object across chunks, so every digest after the first was computed over all
+   preceding data too — a wrong digest that the builder's own verifier shared,
+   so it self-reported success. Both the signer and the verifier now allocate a
+   fresh hash object per chunk.
+2. **Digest range when padding before the block.** The digest covers
+   `[0 : block_start]` (padding included) and the EOCD is digested with the
+   central-directory offset rewritten to `block_start`.
 
 zipalign was also reproduced: the 8 `lib/**/*.so` entries keep their 4096-byte
 data alignment (padding in the 0xd935 extra field) and the APK Signing Block
