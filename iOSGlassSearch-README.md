@@ -34,5 +34,9 @@ cert `CN=SmartLauncher iOS Glass`. minSdk is 24, where v2 is enough.
 Verified: content digest, RSA signature over signed data, certificate/key match,
 ZIP integrity, all 1455 entries intact except the one layout.
 
+zipalign was also reproduced: the 8 `lib/**/*.so` entries keep their 4096-byte
+data alignment (padding in the 0xd935 extra field) and the APK Signing Block
+starts on a 4096-byte boundary, which Android 12+ / 16 KB page devices require.
+
 Note: because the certificate is new, install it as a fresh install (uninstall
 the old Smart Launcher first) — Android rejects a signature change otherwise.
