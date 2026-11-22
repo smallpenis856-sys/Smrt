@@ -14,7 +14,7 @@ for name in ("SearchBarWidget", "SearchBarWidgetViewModel"):
 wrapper = (after / "smali/ginlemon/flower/glass/SLDrawerSearchLayout.smali").read_text()
 assert wrapper.index("->v(I)V") < wrapper.index("->t()V")
 assert "SLDrawerSearchClick;" in wrapper
-assert "versionCode: 660286" in (after / "apktool.yml").read_text()
+assert "versionCode: 660287" in (after / "apktool.yml").read_text()
 for folder in ("assets", "lib"):
     for original in (before / folder).rglob("*"):
         if original.is_file():
@@ -80,11 +80,10 @@ assert "const/4 v4, 0x0" in click
 assert "{v1, v3, v4, v5, v0}" in click
 assert "{v1, v2, v4, v5, v0}" in click  # Same false animation flag for both transitions.
 for relative in (
-    "smali/f58.smali",
     "smali/ginlemon/flower/HomeScreen.smali",
 ):
     assert (before / relative).read_bytes() == (after / relative).read_bytes(), relative
-print("PASS: synchronous drawer-only search navigation, focus after navigation, animation guard, missing-search path, unchanged global navigation")
+print("PASS: synchronous drawer-only search navigation, focus after navigation, animation guard, missing-search path, unchanged global Home navigation")
 
 search_panel = (after / "smali/ginlemon/flower/searchPanel/SearchPanel.smali").read_text()
 back = search_panel.split(".method public final c()Z", 1)[1].split(".end method", 1)[0]
@@ -196,3 +195,36 @@ assert "filled-new-array {p1, v2, v3, v4}, [Lnqa;" in queue_branch
 for other_type in ("E", "F", "i", "D"):
     assert f"Lmqa;->{other_type}:Lmqa;" in queue_branch
 print("PASS: default-home step absent from startup queue; four unrelated startup entries preserved")
+
+# Confirm bottom docking and complete search-only lifecycle management.
+app = "{http://schemas.android.com/apk/res-auto}"
+assert edit.get(app + "layout_constraintBottom_toBottomOf") == "parent"
+assert edit.get(app + "layout_constraintTop_toTopOf") is None
+results = by_id["@id/resultsArea"]
+assert results.get(app + "layout_constraintTop_toTopOf") == "parent"
+assert results.get(app + "layout_constraintBottom_toTopOf") == "@id/searchEditText"
+for method, action in (("w()V", "start"), ("y()V", "stop"), ("onDetachedFromWindow()V", "stop")):
+    body = search_panel.split(".method public final " + method, 1)[1].split(".end method", 1)[0]
+    assert "SLKeyboardDock;->" + action + "()V" in body
+keyboard = (after / "smali/ginlemon/flower/glass/SLKeyboardDock.smali").read_text()
+assert "->setSoftInputMode(I)V" in keyboard
+assert "->addOnGlobalLayoutListener(" in keyboard and "->removeOnGlobalLayoutListener(" in keyboard
+assert "->getWindowVisibleDisplayFrame(" in keyboard and "->bottomOverlap(III)I" in keyboard
+assert "SLKeyboardDock$Api30;->visibleBottom(" in keyboard
+api30 = (after / "smali/ginlemon/flower/glass/SLKeyboardDock$Api30.smali").read_text()
+assert "WindowInsets$Type;->ime()I" in api30 and "WindowInsets$Type;->navigationBars()I" in api30
+print("PASS: search bar below results, IME overlap calculation, search-only listener and window-mode restoration")
+
+# Shared panel animator: monotonic interpolation and equal base settle durations,
+# preserving the existing user animation-speed scaling hook.
+motion = (after / "smali/f58.smali").read_text()
+programmatic = motion.split(".method public final B(ZIFFLcs4;)V", 1)[1].split(".end method", 1)[0]
+settle = motion.split(".method public final y(I[F)Z", 1)[1].split(".end method", 1)[0]
+assert "Lqjc;->b:Lhn3;" not in programmatic
+assert "DecelerateInterpolator;-><init>()V" in programmatic
+assert "new-instance v3, Lm48;" not in settle
+assert settle.count("0x3ff0000000000000L") == 2
+assert "DecelerateInterpolator;-><init>()V" in settle
+assert "DecelerateInterpolator;-><init>(F)V" in settle
+assert settle.count("LSLAnimSpeed;->setDur(Landroid/animation/ValueAnimator;J)") == 2
+print("PASS: non-bouncy shared panel settle interpolation and scaled matching base durations")

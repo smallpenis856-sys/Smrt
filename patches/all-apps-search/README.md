@@ -1,6 +1,14 @@
 # All Apps: copy the actual home search settings
 
-Base: `SmartLauncher-BottomSearch.apk` (660274). Current output: `SmartLauncher-AllAppsSearch-NoFlash.apk` (660286; replaces the previous NoFlash download). Earlier outputs 660275–660285 remain for history, not for installing this change. The user confirmed the glass effect was correct after changing wallpaper.
+Base: `SmartLauncher-BottomSearch.apk` (660274). Current output: `SmartLauncher-AllAppsSearch-NoFlash.apk` (660287; replaces the previous NoFlash download). Earlier outputs 660275–660286 remain for history, not for installing this change. The user confirmed the glass effect was correct after changing wallpaper.
+
+## Keyboard-docked search and smoother panel motion (660287)
+
+The active native search editor is constrained to the bottom of its search container; the original results list is now constrained above it. Existing glass backdrop, ghost text, clear/menu/mic controls and keyboard-first Back behavior remain bound to the same editor. `SLKeyboardDock` enables resize only while the SearchPanel is active, restores the previous soft-input mode on exit/detach, and uses visible bounds plus API 30 IME/navigation insets to add only any remaining occluded area as bottom padding. Already-resized containers are not inset twice. When the IME is hidden, the editor remains at the bottom of the panel. The existing top system inset remains intact. All entry points to the shared search panel use this placement.
+
+The shared `f58` panel animator now uses monotonic deceleration rather than its old bounce interpolators, and gesture settle directions use the same base duration while retaining the user's existing animation-speed scale. This affects other workspace panel transitions too; it does not alter the Android/app-launch activity animation, which was left unchanged to avoid overriding system behavior.
+
+Host arithmetic tests cover overlay and resized keyboard, navigation inset, panning, landscape, zero size and overflow. Structural signed-APK checks verify constraints, event lifecycle, restoration, IME inset calls, motion hooks and prior features. Device testing is still required for actual keyboard animation/insets across Android versions, gesture navigation, rotation and Back; no visual/latency guarantee is claimed.
 
 ## Skip the entire default-home startup step (660286)
 
@@ -32,7 +40,7 @@ Tint refresh runs on pre-draw so wallpaper/theme palette changes need no APK rei
 
 The typing/results screen now uses the same native glass widget as a decorative backdrop, the same 56dp capsule height, 22dp outlined magnifier, 18sp input text and 48dp outlined mic target as the All Apps bar. Its existing editable `searchEditText` stays on top and remains the same class/ID, with aligned ghost/autocomplete text and a transparent fill. The asynchronous search-theme callback is patched only for `SearchPanel.R` so it cannot repaint the original opaque background over the glass. Shared wrapper initialization now explicitly accepts its one-child decorative use without wiring drawer navigation or indexing nonexistent foreground children.
 
-The mic uses the existing external voice-search listener; the localized hint is “Search”. Existing clear, loading, menu, results and keyboard/Back handlers are preserved. Clear is placed just before the mic. The menu remains outside the capsule, and the active field keeps its original top position/available width instead of moving while the keyboard is open. This is a shared-style match, not pixel-identical placement. Home's idle bar and the bottom All Apps bar are not restyled.
+The mic uses the existing external voice-search listener; the localized hint is “Search”. Existing clear, loading, menu, results and keyboard/Back handlers are preserved. Clear is placed just before the mic. The menu remains outside the capsule, and in build 660281 the active field kept its original top position (superseded by 660287). This is a shared-style match, not pixel-identical placement. Home's idle bar and the bottom All Apps bar are not restyled.
 
 ## Back returns to All Apps (660280)
 
@@ -74,7 +82,7 @@ With Java, Apktool 2.9.3 and apksigner available:
 2. Copy `drawer_bottom_search.xml` to `decoded/res/layout/` and `SLDrawerSearchLayout.smali` to `decoded/smali/ginlemon/flower/glass/`.
 3. Copy both `ic_drawer_*_outline.xml` files to `decoded/res/drawable/` and `SLDrawerVoiceClick.smali`, `SLDrawerSearchClick.smali` and `SLDrawerSearchReturn.smali` to `decoded/smali/ginlemon/flower/glass/`. In `decoded/smali/qv9.smali`, insert the block in `drawer-label-hook.txt` after its matching `iget-object v10` line (the first line of that text file is context, not a duplicate instruction).
 4. In `decoded/smali/ginlemon/flower/widgets/searchbar/SearchBarWidget.smali`, insert the `invoke-static` from `home-render-hook.txt` immediately after `.locals 10` in method `u(FLp7b;Luec;)V`, exactly once. The text file includes the method header for context.
-5. Apply `no-category-suggestion.patch` and `no-startup-default-prompt.patch` inside the decoded directory, then apply `remove-startup-default-step.patch`. Copy `search_panel.xml` to `decoded/res/layout/` and apply `active-search-hooks.txt` (mic binding, transparent async fill, localized hint). Apply the three insertions in `search-return-hooks.txt` to `decoded/smali/ginlemon/flower/searchPanel/SearchPanel.smali` (instance field, close-search Back branch and panel-exit cleanup). Change `versionCode: 660274` to `versionCode: 660286` in `decoded/apktool.yml`.
+5. Apply `no-category-suggestion.patch` and `no-startup-default-prompt.patch` inside the decoded directory, then apply `remove-startup-default-step.patch`. Copy `search_panel.xml` to `decoded/res/layout/` and apply `active-search-hooks.txt` (mic binding, transparent async fill, localized hint). Apply the three insertions in `search-return-hooks.txt` to `decoded/smali/ginlemon/flower/searchPanel/SearchPanel.smali` (instance field, close-search Back branch and panel-exit cleanup). Apply `keyboard-dock-hooks.patch` and `smooth-panel-motion.patch`, and copy `SLKeyboardDock.smali` and `SLKeyboardDock$Api30.smali` to `decoded/smali/ginlemon/flower/glass/`. Change `versionCode: 660274` to `versionCode: 660287` in `decoded/apktool.yml`.
 6. Build with `apktool b decoded -o unsigned.apk`.
 7. Run `python patches/all-apps-search/align_apk.py unsigned.apk aligned.apk`.
 8. Sign `aligned.apk` using your own keystore, producing `SmartLauncher-AllAppsSearch-NoFlash.apk`.
@@ -87,4 +95,4 @@ Build, signed-APK decode, v2/v3 signature verification, 4-byte stored-entry alig
 
 No Android device/emulator is available here. These are structural/build checks, not proof the reported glass defect is fixed. On a device, first visit home, change the home search appearance/glass settings, then open All Apps. Confirm both bars respond to the same settings; also check reopening, rotation, wallpaper changes, search-row taps and mic launching/missing-handler feedback. Reference-style layout and touch behavior have not been visually tested on a device.
 
-This APK uses the same local certificate as 660275–660285, so an update over those builds should be accepted. It is not signed with the original base APK's key. Back up layout/settings before considering any uninstall; uninstalling can remove data. The temporary keystore is not committed.
+This APK uses the same local certificate as 660275–660286, so an update over those builds should be accepted. It is not signed with the original base APK's key. Back up layout/settings before considering any uninstall; uninstalling can remove data. The temporary keystore is not committed.
