@@ -14,7 +14,7 @@ for name in ("SearchBarWidget", "SearchBarWidgetViewModel"):
 wrapper = (after / "smali/ginlemon/flower/glass/SLDrawerSearchLayout.smali").read_text()
 assert wrapper.index("->v(I)V") < wrapper.index("->t()V")
 assert "SLDrawerSearchClick;" in wrapper
-assert "versionCode: 660280" in (after / "apktool.yml").read_text()
+assert "versionCode: 660281" in (after / "apktool.yml").read_text()
 for folder in ("assets", "lib"):
     for original in (before / folder).rglob("*"):
         if original.is_file():
@@ -101,3 +101,26 @@ assert "->v()V" in restore  # Hide keyboard before restoring drawer.
 assert "const/4 v4, 0x0" in restore
 assert "{v1, v2, v4, v5, v0}" in restore
 print("PASS: origin recorded after navigation, keyboard-first Back, one-shot drawer restore, stale target guard and exit cleanup")
+
+active = ET.parse(after / "res/layout/search_panel.xml").getroot()[0]
+by_id = {node.get(android + "id"): node for node in active if node.get(android + "id")}
+edit = by_id["@id/searchEditText"]
+assert edit.tag == "ginlemon.library.widgets.EditTextBackEvent"
+assert edit.get(android + "layout_height") == "56.0dip"
+assert edit.get(android + "background") == "@android:color/transparent"
+assert edit.get(android + "hint") == "@string/search"
+assert by_id["@id/ghostText"].get(android + "paddingStart") == edit.get(android + "paddingStart")
+assert by_id["@id/ghostText"].get(android + "paddingEnd") == edit.get(android + "paddingEnd")
+assert "@id/resultsArea" in by_id and "@id/menu_button" in by_id and "@id/clear_button" in by_id
+mic = next(node for node in active if node.get(android + "tag") == "active_search_mic")
+assert mic.get(android + "src") == "@drawable/ic_drawer_mic_outline"
+assert mic.get(android + "contentDescription") == "@string/abc_searchview_description_voice"
+backdrop = active[0]
+assert backdrop.tag == "ginlemon.flower.glass.SLDrawerSearchLayout" and len(backdrop) == 1
+assert backdrop[0].get(android + "tag") == "all_apps_search"
+assert "->getChildCount()I" in wrapper  # Single-child decorative use must not access overlay.
+assert '"active_search_mic"' in search_panel and "SLDrawerVoiceClick;" in search_panel
+async_theme = (after / "smali/n90.smali").read_text()
+block = async_theme.split("SearchPanel;->R:Lginlemon/library/widgets/EditTextBackEvent;", 1)[1].split("return-object", 1)[0]
+assert block.index("const/4 v9, 0x0") < block.index("->setBackground(")
+print("PASS: active editor uses same native glass/icons, editable ID and search controls preserved, ghost alignment, voice binding, async opaque-fill suppression")

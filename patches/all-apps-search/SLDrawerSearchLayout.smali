@@ -36,6 +36,16 @@
 
     invoke-virtual {v0}, Lginlemon/flower/widgetUtils/compose/ViewWidgetComposableLayout;->t()V
 
+    invoke-virtual {p0}, Landroid/view/ViewGroup;->getChildCount()I
+    move-result v1
+    const/4 v0, 0x1
+    if-ne v1, v0, :drawer_foreground
+    return-void
+    :drawer_foreground
+    const/4 v0, 0x0
+    invoke-virtual {p0, v0}, Landroid/view/ViewGroup;->getChildAt(I)Landroid/view/View;
+    move-result-object v0
+
     # Drawer-only atomic navigation avoids the intermediate home animation.
     new-instance v1, Lginlemon/flower/glass/SLDrawerSearchClick;
 

@@ -1,0 +1,12 @@
+After SearchPanel constructor assigns R:
+
+
+    const-string v11, "active_search_mic"
+    invoke-virtual {p0, v11}, Landroid/view/View;->findViewWithTag(Ljava/lang/Object;)Landroid/view/View;
+    move-result-object v11
+    new-instance v12, Lginlemon/flower/glass/SLDrawerVoiceClick;
+    invoke-direct {v12}, Lginlemon/flower/glass/SLDrawerVoiceClick;-><init>()V
+    invoke-virtual {v11, v12}, Landroid/view/View;->setOnClickListener(Landroid/view/View$OnClickListener;)V
+
+In n90.smali, in the SearchPanel.R setBackground block only, insert const/4 v9, 0x0 before setBackground.
+In qw9.smali change the hint resource 0x7f1306bb to 0x7f1306ba (Search).
