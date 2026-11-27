@@ -1,0 +1,11 @@
+# Light launcher action popovers — 660301
+
+Based on 660300 and the supplied two launcher popover screenshots and white reference. The shared launcher app-action/shortcut popover (`sb0`, used for home and drawer launchables, including app-provided shortcut lists such as WhatsApp) and the generic action popover (`rn`) use a fixed light palette with a light neutral `#ebebeb` surface. The popup background uses the existing native highlight and shadow renderer with a 24dp rounded shape, without its pointer triangle. Arrow-reserved padding is omitted only for this exact solid style. The light palette also gives the existing controls readable dark foregrounds and preserves the launcher's danger-color action styling.
+
+The existing title, rows, labels, icon/shortcut images, order, event handlers, gesture/drag behavior and native hit targets are retained: the reference's unrelated three-button header and labels are not added. The separate folder-content surface, Android/system dialogs, search bars and unrelated launcher UI are not restyled. This covers the shared launcher action popover implementations above; it does not guarantee every unrelated menu or third-party application's own UI is changed.
+
+## Rebuild and tests
+
+Decode `SmartLauncher-GifIcons-660300.apk`, run `python3 patches/white-popups/apply.py <decoded>`, then build with apktool, align, and sign with the 660300 key. The script moves the two edited popup view classes to classes4 to avoid the already crowded second DEX. Run `python3 patches/white-popups/check_build.py <decoded-660300> <decoded-output>` and the GIF, backup, search-dialer, and task-selection host tests. Reproducible patch application, ZIP alignment, v2/v3 signature verification and structural regression checks passed; signing certificate matches 660300.
+
+**No Android phone or emulator was available.** Popup colors, highlight and shadow, visual likeness to the reference, menu placement without a pointer, contrast, accessibility, shortcut actions, and updates on different wallpapers or Android versions remain unverified at runtime. In particular, this is a scoped styling attempt, not a confirmed pixel-identical reproduction. Existing GIF playback also still needs phone testing.
