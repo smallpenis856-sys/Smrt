@@ -1,0 +1,15 @@
+--- a/smali/zw9.smali
++++ b/smali/zw9.smali
+@@ -257,2 +256,0 @@
+-    if-eqz p4, :cond_7
+-
+@@ -260,9 +257,0 @@
+-
+-    const/4 v2, 0x6
+-
+-    goto :goto_2
+-
+-    :cond_7
+-    const/16 p2, 0x8
+-
+-    invoke-virtual {p1, p2}, Landroid/widget/ImageView;->setVisibility(I)V

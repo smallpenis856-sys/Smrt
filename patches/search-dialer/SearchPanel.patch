@@ -1,0 +1,27 @@
+--- a/smali/ginlemon/flower/searchPanel/SearchPanel.smali
++++ b/smali/ginlemon/flower/searchPanel/SearchPanel.smali
+@@ -122,0 +123,2 @@
++.field public slDialerButton:LSLDialerButton;
++
+@@ -599 +601 @@
+-    const/16 v1, 0x8
++    const/4 v1, 0x0
+@@ -612 +614,5 @@
+-    invoke-virtual {v11, v1}, Landroid/view/View;->setOnClickListener(Landroid/view/View$OnClickListener;)V
++    new-instance v12, LSLDialerButton;
++
++    invoke-direct {v12, v11, v10, v1}, LSLDialerButton;-><init>(Landroid/view/View;Landroid/widget/EditText;Landroid/view/View$OnClickListener;)V
++
++    iput-object v12, p0, Lginlemon/flower/searchPanel/SearchPanel;->slDialerButton:LSLDialerButton;
+@@ -3863,0 +3870,5 @@
++    iget-object v0, p0, Lginlemon/flower/searchPanel/SearchPanel;->slDialerButton:LSLDialerButton;
++    if-eqz v0, :sl_dialer_reset_done
++    invoke-virtual {v0}, LSLDialerButton;->reset()V
++    :sl_dialer_reset_done
++
+@@ -4470,0 +4482,5 @@
++
++    iget-object v0, p0, Lginlemon/flower/searchPanel/SearchPanel;->slDialerButton:LSLDialerButton;
++    if-eqz v0, :sl_dialer_reset_done
++    invoke-virtual {v0}, LSLDialerButton;->reset()V
++    :sl_dialer_reset_done
