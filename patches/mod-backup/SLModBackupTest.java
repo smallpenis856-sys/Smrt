@@ -29,7 +29,7 @@ public class SLModBackupTest {
     public static void main(String[] args)throws Exception {
         Ctx c=new Ctx();
         Prefs mod=c.getSharedPreferences("sl_mod_settings",0), switches=c.getSharedPreferences("sl_agenda_prefs_v1",0), agenda=c.getSharedPreferences("sl_agenda_panel_v1",0);
-        mod.data.put("gif_icon_v1_42","R0lGODlhAQACAAAAAA=="); mod.data.put("glass_clock_style",3); mod.data.put("glass_clock_opacity",.4f); mod.data.put("enabled",true); mod.data.put("unicode","اردو"); mod.data.put("set",new HashSet<>(Arrays.asList("a","b"))); mod.data.put("long",12345678901L);
+        mod.data.put("gif_icon_v1_42","R0lGODlhAQACAAAAAA=="); mod.data.put("gif_size_v1_42",78); mod.data.put("gif_shape_v1_42",1); mod.data.put("gif_mode_v1_42",1); mod.data.put("glass_clock_style",3); mod.data.put("glass_clock_opacity",.4f); mod.data.put("enabled",true); mod.data.put("unicode","اردو"); mod.data.put("set",new HashSet<>(Arrays.asList("a","b"))); mod.data.put("long",12345678901L);
         switches.data.put("ios26_glass_switches_v1",true); agenda.data.put("items_json","[{\"title\":\"Personal task\"}]"); agenda.data.put("expenses_json_v1","private");
         Map<String,?> before=mod.getAll(), expectedAgenda=agenda.getAll();
         ByteArrayOutputStream bytes=new ByteArrayOutputStream(); ZipOutputStream zip=new ZipOutputStream(bytes); zip.putNextEntry(new ZipEntry("original")); zip.write(1); zip.closeEntry(); SLModBackup.write(c,zip); zip.close();
