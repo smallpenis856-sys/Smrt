@@ -1,0 +1,22 @@
+--- a/smali/rx7.smali
++++ b/smali/rx7.smali
+@@ -1131,0 +1132,19 @@
++    .locals 1
++
++    invoke-virtual {p0, p1, p2, p3}, Lrx7;->slNativeScore(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)I
++
++    move-result v0
++
++    if-lez v0, :fallback
++
++    return v0
++
++    :fallback
++    invoke-static {p1, p2}, LSLSearchFallback;->score(Ljava/lang/String;Ljava/lang/String;)I
++
++    move-result v0
++
++    return v0
++.end method
++
++.method public slNativeScore(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)I
