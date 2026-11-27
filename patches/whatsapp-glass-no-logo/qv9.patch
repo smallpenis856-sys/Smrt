@@ -1,0 +1,28 @@
+--- a/smali/qv9.smali
++++ b/smali/qv9.smali
+@@ -165,0 +166,25 @@
++    # Only shortcut cards use the glass renderer with an empty native foreground.
++    iget-object v1, p0, Lqv9;->e:Lginlemon/flower/widgets/searchbar/SearchBarWidget;
++
++    invoke-virtual {v1}, Landroid/view/View;->getParent()Landroid/view/ViewParent;
++
++    move-result-object v1
++
++    instance-of v2, v1, Landroid/view/View;
++
++    if-eqz v2, :wa_glass_done
++
++    check-cast v1, Landroid/view/View;
++
++    invoke-virtual {v1}, Landroid/view/View;->getParent()Landroid/view/ViewParent;
++
++    move-result-object v1
++
++    instance-of v2, v1, LSLGlassCard;
++
++    if-eqz v2, :wa_glass_done
++
++    sget-object v6, LSLGlassEmpty;->content:Lw12;
++
++    :wa_glass_done
++
