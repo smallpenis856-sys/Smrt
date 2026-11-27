@@ -1,0 +1,11 @@
+# Clock next task — build 660297
+
+Based on 660296. The user's clock screenshot showed the weather block and an erroneous resource path; they asked to replace the entire weather block with the nearest task, then chose launcher tasks only for now, not Google Tasks. For non-Blossom glass clock styles, replace that block with the title and date/time of one incomplete launcher agenda task. Existing weather display preference now controls the task readout and is labeled “Show Next Task”. Blossom's separate card and other widgets are unchanged.
+
+Source is the existing `sl_agenda_panel_v1` / `items_json` local agenda store. Selection is read-only: type 2, nonempty title, not completed, date today or later; order by date and then HH:mm, with untimed tasks after timed tasks on the same date. Today’s items remain eligible all day, even if their time has passed; earlier-date overdue tasks, calendar events and Google Tasks are excluded. A missing eligible item shows “No upcoming tasks”. Dates and times are shown without changing the task, and long text is ellipsized. Background parsing runs on one worker per attached clock; a preference listener updates on edits, the existing clock tick refreshes at a date change, and detach unregisters and stops the worker. No new permission, network access, OAuth, or agenda data mutation is introduced.
+
+## Rebuild and verification
+
+Decode 660296; apply the two zero-context patches with `git apply --unidiff-zero`, copy `smali/` into `smali_classes4/`, set versionCode to 660297, build with apktool, align before signing with the 660296 signer. The smali is generated from the included Java using Java 8, Android 31 and dx. Run `SLTaskChoiceTest` with assertions enabled and `python3 patches/clock-next-task/check_build.py <decoded-660296> <decoded-660297>`, plus adapted earlier search/glass checks.
+
+Host selection tests, APK structure/round-trip, previous search/photo/glass regressions, signature and alignment passed. No device/emulator was available: visual placement, TalkBack, actual preference notifications, lifecycle behavior and interactions must be checked on a phone. This is not Google Tasks integration. The clock's existing tap behavior is unchanged; this readout is not a new task-editing control. Task titles appear on the home screen and can be visible to others.

@@ -1,0 +1,5 @@
+--- a/smali_classes4/SLGlassClockSettings.smali
++++ b/smali_classes4/SLGlassClockSettings.smali
+@@ -2676 +2676 @@
+-    const-string v3, "Show Weather Readout"
++    const-string v3, "Show Next Task"

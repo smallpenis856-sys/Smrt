@@ -1,0 +1,320 @@
+--- a/smali_classes4/SLGlassClockView.smali
++++ b/smali_classes4/SLGlassClockView.smali
+@@ -110,0 +111,2 @@
++.field private clockTask:LSLClockTask;
++
+@@ -1546,270 +1548 @@
+-    .locals 10
+-
+-    .line 881
+-    iget v0, p0, LSLGlassClockView;->digitsLeftX:F
+-
+-    int-to-float p2, p2
+-
+-    const v1, 0x3d6147ae    # 0.055f
+-
+-    mul-float/2addr v1, p2
+-
+-    invoke-static {v0, v1}, Ljava/lang/Math;->max(FF)F
+-
+-    move-result v0
+-
+-    const v1, 0x3d4ccccd    # 0.05f
+-
+-    mul-float/2addr p2, v1
+-
+-    .line 882
+-    invoke-virtual {p0}, LSLGlassClockView;->getContext()Landroid/content/Context;
+-
+-    move-result-object v1
+-
+-    const/high16 v2, 0x41580000    # 13.5f
+-
+-    invoke-static {v1, v2}, LSLGlassClockView;->dpf(Landroid/content/Context;F)F
+-
+-    move-result v1
+-
+-    invoke-virtual {p0}, LSLGlassClockView;->getContext()Landroid/content/Context;
+-
+-    move-result-object v2
+-
+-    const/high16 v3, 0x41980000    # 19.0f
+-
+-    invoke-static {v2, v3}, LSLGlassClockView;->dpf(Landroid/content/Context;F)F
+-
+-    move-result v2
+-
+-    invoke-static {p2, v1, v2}, LSLGlassClockView;->clampFloat(FFF)F
+-
+-    move-result p2
+-
+-    const v1, 0x3f5c28f6    # 0.86f
+-
+-    mul-float/2addr v1, p2
+-
+-    .line 884
+-    iget-object v2, p0, LSLGlassClockView;->weatherTempPaint:Landroid/graphics/Paint;
+-
+-    invoke-virtual {v2, p2}, Landroid/graphics/Paint;->setTextSize(F)V
+-
+-    .line 885
+-    iget-object v2, p0, LSLGlassClockView;->weatherDescPaint:Landroid/graphics/Paint;
+-
+-    invoke-virtual {v2, v1}, Landroid/graphics/Paint;->setTextSize(F)V
+-
+-    .line 887
+-    iget-object v2, p0, LSLGlassClockView;->weatherDesc:Ljava/lang/String;
+-
+-    invoke-virtual {v2}, Ljava/lang/String;->length()I
+-
+-    move-result v2
+-
+-    if-lez v2, :cond_0
+-
+-    const/4 v2, 0x1
+-
+-    goto :goto_0
+-
+-    :cond_0
+-    const/4 v2, 0x0
+-
+-    .line 888
+-    :goto_0
+-    invoke-virtual {p0}, LSLGlassClockView;->getContext()Landroid/content/Context;
+-
+-    move-result-object v3
+-
+-    const/high16 v4, 0x41000000    # 8.0f
+-
+-    invoke-static {v3, v4}, LSLGlassClockView;->dpf(Landroid/content/Context;F)F
+-
+-    move-result v3
+-
+-    int-to-float p3, p3
+-
+-    sub-float/2addr p3, v3
+-
+-    if-eqz v2, :cond_1
+-
+-    const v3, 0x3f9eb852    # 1.24f
+-
+-    mul-float/2addr v1, v3
+-
+-    sub-float v1, p3, v1
+-
+-    goto :goto_1
+-
+-    :cond_1
+-    move v1, p3
+-
+-    :goto_1
+-    const v3, 0x3f970a3d    # 1.18f
+-
+-    mul-float/2addr v3, p2
+-
+-    const v4, 0x3f3d70a4    # 0.74f
+-
+-    mul-float/2addr p2, v4
+-
+-    const v4, 0x3f6b851f    # 0.92f
+-
+-    mul-float/2addr v4, p2
+-
+-    sub-float v4, v1, v4
+-
+-    .line 896
+-    iget-object v5, p0, LSLGlassClockView;->cloudPath:Landroid/graphics/Path;
+-
+-    invoke-virtual {v5}, Landroid/graphics/Path;->reset()V
+-
+-    .line 897
+-    iget-object v5, p0, LSLGlassClockView;->cloudPath:Landroid/graphics/Path;
+-
+-    const v6, 0x3eae147b    # 0.34f
+-
+-    mul-float/2addr v6, v3
+-
+-    add-float/2addr v6, v0
+-
+-    const v7, 0x3f0f5c29    # 0.56f
+-
+-    mul-float/2addr v7, p2
+-
+-    add-float/2addr v7, v4
+-
+-    const v8, 0x3ec28f5c    # 0.38f
+-
+-    mul-float/2addr v8, p2
+-
+-    sget-object v9, Landroid/graphics/Path$Direction;->CW:Landroid/graphics/Path$Direction;
+-
+-    invoke-virtual {v5, v6, v7, v8, v9}, Landroid/graphics/Path;->addCircle(FFFLandroid/graphics/Path$Direction;)V
+-
+-    .line 898
+-    iget-object v5, p0, LSLGlassClockView;->cloudPath:Landroid/graphics/Path;
+-
+-    const v6, 0x3f147ae1    # 0.58f
+-
+-    mul-float/2addr v6, v3
+-
+-    add-float/2addr v6, v0
+-
+-    const v7, 0x3ecccccd    # 0.4f
+-
+-    mul-float/2addr v7, p2
+-
+-    add-float/2addr v7, v4
+-
+-    const v8, 0x3ed70a3d    # 0.42f
+-
+-    mul-float/2addr v8, p2
+-
+-    sget-object v9, Landroid/graphics/Path$Direction;->CW:Landroid/graphics/Path$Direction;
+-
+-    invoke-virtual {v5, v6, v7, v8, v9}, Landroid/graphics/Path;->addCircle(FFFLandroid/graphics/Path$Direction;)V
+-
+-    .line 899
+-    iget-object v5, p0, LSLGlassClockView;->cloudPath:Landroid/graphics/Path;
+-
+-    const v6, 0x3f47ae14    # 0.78f
+-
+-    mul-float/2addr v6, v3
+-
+-    add-float/2addr v6, v0
+-
+-    const v7, 0x3f1eb852    # 0.62f
+-
+-    mul-float/2addr v7, p2
+-
+-    add-float/2addr v7, v4
+-
+-    const v8, 0x3ea3d70a    # 0.32f
+-
+-    mul-float/2addr v8, p2
+-
+-    sget-object v9, Landroid/graphics/Path$Direction;->CW:Landroid/graphics/Path$Direction;
+-
+-    invoke-virtual {v5, v6, v7, v8, v9}, Landroid/graphics/Path;->addCircle(FFFLandroid/graphics/Path$Direction;)V
+-
+-    .line 900
+-    iget-object v5, p0, LSLGlassClockView;->tmpRect:Landroid/graphics/RectF;
+-
+-    const v6, 0x3e75c28f    # 0.24f
+-
+-    mul-float/2addr v6, v3
+-
+-    add-float/2addr v6, v0
+-
+-    const v7, 0x3f0ccccd    # 0.55f
+-
+-    mul-float/2addr v7, p2
+-
+-    add-float/2addr v7, v4
+-
+-    const v8, 0x3f51eb85    # 0.82f
+-
+-    mul-float/2addr v8, v3
+-
+-    add-float/2addr v8, v0
+-
+-    const v9, 0x3f70a3d7    # 0.94f
+-
+-    mul-float/2addr v9, p2
+-
+-    add-float/2addr v4, v9
+-
+-    invoke-virtual {v5, v6, v7, v8, v4}, Landroid/graphics/RectF;->set(FFFF)V
+-
+-    .line 901
+-    iget-object v4, p0, LSLGlassClockView;->cloudPath:Landroid/graphics/Path;
+-
+-    iget-object v5, p0, LSLGlassClockView;->tmpRect:Landroid/graphics/RectF;
+-
+-    const v6, 0x3e3851ec    # 0.18f
+-
+-    mul-float/2addr p2, v6
+-
+-    sget-object v6, Landroid/graphics/Path$Direction;->CW:Landroid/graphics/Path$Direction;
+-
+-    invoke-virtual {v4, v5, p2, p2, v6}, Landroid/graphics/Path;->addRoundRect(Landroid/graphics/RectF;FFLandroid/graphics/Path$Direction;)V
+-
+-    .line 902
+-    iget-object p2, p0, LSLGlassClockView;->cloudPath:Landroid/graphics/Path;
+-
+-    iget-object v4, p0, LSLGlassClockView;->cloudPaint:Landroid/graphics/Paint;
+-
+-    invoke-virtual {p1, p2, v4}, Landroid/graphics/Canvas;->drawPath(Landroid/graphics/Path;Landroid/graphics/Paint;)V
+-
+-    .line 904
+-    iget-object p2, p0, LSLGlassClockView;->weatherTemp:Ljava/lang/String;
+-
+-    add-float/2addr v3, v0
+-
+-    invoke-virtual {p0}, LSLGlassClockView;->getContext()Landroid/content/Context;
+-
+-    move-result-object v4
+-
+-    const/high16 v5, 0x40a00000    # 5.0f
+-
+-    invoke-static {v4, v5}, LSLGlassClockView;->dpf(Landroid/content/Context;F)F
+-
+-    move-result v4
+-
+-    add-float/2addr v3, v4
+-
+-    iget-object v4, p0, LSLGlassClockView;->weatherTempPaint:Landroid/graphics/Paint;
+-
+-    invoke-virtual {p1, p2, v3, v1, v4}, Landroid/graphics/Canvas;->drawText(Ljava/lang/String;FFLandroid/graphics/Paint;)V
+-
+-    if-eqz v2, :cond_2
+-
+-    .line 906
+-    iget-object p2, p0, LSLGlassClockView;->weatherDesc:Ljava/lang/String;
+-
+-    iget-object v1, p0, LSLGlassClockView;->weatherDescPaint:Landroid/graphics/Paint;
+-
+-    invoke-virtual {p1, p2, v0, p3, v1}, Landroid/graphics/Canvas;->drawText(Ljava/lang/String;FFLandroid/graphics/Paint;)V
++    .locals 7
+@@ -1817 +1550,10 @@
+-    :cond_2
++    iget-object v0, p0, LSLGlassClockView;->clockTask:LSLClockTask;
++    if-eqz v0, :done
++    move-object v1, p1
++    move v2, p2
++    move v3, p3
++    iget v4, p0, LSLGlassClockView;->digitsLeftX:F
++    iget-object v5, p0, LSLGlassClockView;->weatherTempPaint:Landroid/graphics/Paint;
++    iget-object v6, p0, LSLGlassClockView;->weatherDescPaint:Landroid/graphics/Paint;
++    invoke-virtual/range {v0 .. v6}, LSLClockTask;->draw(Landroid/graphics/Canvas;IIFLandroid/graphics/Paint;Landroid/graphics/Paint;)V
++    :done
+@@ -2539,4 +2280,0 @@
+-    iget-boolean v5, v8, LSLGlassClockView;->hasRealWeather:Z
+-
+-    if-eqz v5, :cond_4
+-
+@@ -4273,0 +4012,4 @@
++    new-instance v0, LSLClockTask;
++    invoke-direct {v0, p0}, LSLClockTask;-><init>(Landroid/view/View;)V
++    iput-object v0, p0, LSLGlassClockView;->clockTask:LSLClockTask;
++
+@@ -4281 +4023,8 @@
+-    .locals 0
++    .locals 1
++
++    iget-object v0, p0, LSLGlassClockView;->clockTask:LSLClockTask;
++    if-eqz v0, :task_stopped
++    invoke-virtual {v0}, LSLClockTask;->stop()V
++    const/4 v0, 0x0
++    iput-object v0, p0, LSLGlassClockView;->clockTask:LSLClockTask;
++    :task_stopped
+@@ -4642,4 +4390,0 @@
+-    iget-boolean v2, p0, LSLGlassClockView;->hasRealWeather:Z
+-
+-    if-eqz v2, :cond_b
+-
+@@ -4669,0 +4415,5 @@
++
++    iget-object v0, p0, LSLGlassClockView;->clockTask:LSLClockTask;
++    if-eqz v0, :task_tick_done
++    invoke-virtual {v0}, LSLClockTask;->tick()V
++    :task_tick_done
