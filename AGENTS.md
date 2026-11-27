@@ -30,3 +30,7 @@ Take the first option that fully works:
 Never cut: validation at trust boundaries, error handling that prevents data loss, security, accessibility, the calibration real hardware needs, anything the user asked for.
 
 Source: DietrichGebert/ponytail (MIT), v5.3.3, commit ebd8654. Installed verbatim above; update from upstream instead of editing by hand.
+
+## Ponytail skill loading
+
+For applicable coding tasks, read `.claude/skills/ponytail/SKILL.md` before acting; use full mode unless the user changes or disables it. For review, audit, debt, gain or help requests, also read the matching `.claude/skills/ponytail-<name>/SKILL.md` and follow it where applicable. These are repository-local instructions; do not assume host-specific plugin hooks or commands are available.
