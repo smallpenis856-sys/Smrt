@@ -1,0 +1,5 @@
+--- a/smali_classes2/yx0.smali
++++ b/smali_classes2/yx0.smali
+@@ -1021,0 +1022,2 @@
++    invoke-static/range {v16 .. v17}, LSLModBackup;->restore(Landroid/content/Context;Ljava/io/File;)V
++

@@ -1,0 +1,15 @@
+--- a/smali_classes2/h0.smali
++++ b/smali_classes2/h0.smali
+@@ -1939,3 +1938,0 @@
+-    :try_end_4
+-    .catchall {:try_start_4 .. :try_end_4} :catchall_2
+-
+@@ -1944,0 +1942,8 @@
++    move-object/from16 v4, p0
++    iget-object v4, v4, Lh0;->i:Ljava/lang/Object;
++    check-cast v4, Lxi0;
++    iget-object v4, v4, Lxi0;->a:Landroid/content/Context;
++    invoke-static {v4, v5}, LSLModBackup;->write(Landroid/content/Context;Ljava/util/zip/ZipOutputStream;)V
++    :try_end_4
++    .catchall {:try_start_4 .. :try_end_4} :catchall_2
++
