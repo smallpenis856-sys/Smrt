@@ -1,0 +1,5 @@
+--- a/smali_classes4/SLSearchHook.smali
++++ b/smali_classes4/SLSearchHook.smali
+@@ -248,0 +249,2 @@
++
++    invoke-static {v2, v9}, LSLWaContactSearch;->attach(Landroid/widget/EditText;Landroid/widget/LinearLayout;)V
