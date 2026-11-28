@@ -1,0 +1,17 @@
+package android.animation;
+import android.view.animation.AccelerateDecelerateInterpolator;
+public class ValueAnimator extends Animator {
+    public interface AnimatorUpdateListener { void onAnimationUpdate(ValueAnimator a); }
+    public static ValueAnimator last;
+    public AnimatorUpdateListener update; public AnimatorListenerAdapter listener; public float value;
+    public static ValueAnimator ofFloat(float... values) { if (values.length != 3 || values[0] != 1 || values[1] != .16f || values[2] != 1) throw new AssertionError(); return last = new ValueAnimator(); }
+    public void setDuration(long duration) { if (duration != 460) throw new AssertionError(); }
+    public void setInterpolator(AccelerateDecelerateInterpolator i) {}
+    public void addUpdateListener(AnimatorUpdateListener l) { update = l; }
+    public void addListener(AnimatorListenerAdapter l) { listener = l; }
+    public void start() {}
+    public void cancel() { listener.onAnimationEnd(this); }
+    public Object getAnimatedValue() { return value; }
+    public void frame(float v) { value = v; update.onAnimationUpdate(this); }
+    public void end() { listener.onAnimationEnd(this); }
+}

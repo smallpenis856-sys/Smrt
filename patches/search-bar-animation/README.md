@@ -1,0 +1,11 @@
+# Search bar horizontal close/open — 660304
+
+Based on 660303. Entering the shared SearchPanel starts a one-shot 460 ms horizontal squeeze toward the search field's center and expands it again. The active field, glass and overlaid controls move together; the results list and separate menu button are excluded. This applies when entering search from home, All Apps or other launcher entry points. The panel still opens immediately: keyboard focus, query, result placement, Back handling and the drawer's no-home-flash transition are not delayed or replaced. This is an animation on the active search bar, not a continuous effect or an animation on every tap while already typing.
+
+One pre-draw listener waits for layout; it is removed on use or cancellation. Exit and detach cancel the animator and restore previous scale/translation. Hidden or zero-width bars do not animate. Android's system animator-duration setting controls the animator. No background timer or permanent redraw loop is added.
+
+Rebuild: decode `SmartLauncher-RestoreMenus-660303.apk`, apply `python3 patches/search-bar-animation/apply.py <decoded>`, build with apktool 2.9.3, add the included helper DEX with `python3 patches/search-bar-animation/append_dex.py <built> <unsigned> patches/search-bar-animation/classes6.dex`, align via `patches/all-apps-search/align_apk.py`, and sign. The helper is compiled from `SLSearchAnimation.java` using Android API 31, Java 8, dx min SDK 24; its disassembled smali is included for inspection. Run `python3 patches/search-bar-animation/check_build.py <decoded-660303> <decoded-output> <signed-apk>`, plus `SLSearchAnimationTest` with the provided test stubs. Checks compare other launcher smali, GIF helper, resources and manifest; host tests cover animation geometry and cleanup. APK v2/v3 signatures and alignment passed.
+
+**Signing change:** the 660300–660303 key was unavailable in this workspace. The user approved a new key. This build cannot update those versions in place; uninstall can erase launcher data. Backup/restore is not verified on a phone, so a backup may not recover it. Preserve the new key separately; it is not committed.
+
+No Android phone/emulator was available. Animation timing, visual appearance of the glass, keyboard, accessibility, search activation, rapid navigation, backup/restore and installation remain unverified on-device.
